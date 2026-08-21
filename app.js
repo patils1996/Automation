@@ -1593,7 +1593,7 @@ function renderROExplorerPage() {
     
     tr.innerHTML = `
       <td>${ro.roid}</td>
-      <td title="${ro.outlet_name}">${ro.outlet_name.substring(0, 24)}${ro.outlet_name.length > 24 ? '...' : ''}</td>
+      <td title="${ro.outlet_name}">${ro.outlet_name}</td>
       <td>${ro.sales_area}</td>
       <td>${ro.eo_name}</td>
       <td>${ro.so_name}</td>
@@ -1739,7 +1739,7 @@ function renderMappingsPage() {
     
     tr.innerHTML = `
       <td>${row.roid}</td>
-      <td title="${row.outlet_name}">${row.outlet_name.substring(0, 24)}${row.outlet_name.length > 24 ? '...' : ''}</td>
+      <td title="${row.outlet_name}">${row.outlet_name}</td>
       <td>${row.eo_name}</td>
       <td>${row.sales_group}</td>
       <td>${row.so_name}</td>
