@@ -87,6 +87,21 @@ window.addEventListener('DOMContentLoaded', async () => {
   if (syncBtnLanding) {
     syncBtnLanding.addEventListener('click', window.syncGoogleSheet);
   }
+
+  // Bind Google Sheet Link Configuration
+  const setupGoogleSheetLink = () => {
+    const currentUrl = localStorage.getItem('bpcl_google_sheet_url') || 'https://docs.google.com/spreadsheets/d/1YYqRISRjhaita2IwW3FmJZJVyZeJIQr4iK5e0NPebfw/edit';
+    const newUrl = prompt("Enter your Google Sheet URL:\n(Either copy the address bar link, or use File > Share > Publish to web > CSV Link)", currentUrl);
+    if (newUrl !== null && newUrl.trim() !== "") {
+      localStorage.setItem('bpcl_google_sheet_url', newUrl.trim());
+      showToast("Google Sheet URL updated successfully!", "success");
+    }
+  };
+
+  const linkSetup = document.getElementById('link-setup-sheet');
+  const linkSetupLanding = document.getElementById('link-setup-sheet-landing');
+  if (linkSetup) linkSetup.addEventListener('click', setupGoogleSheetLink);
+  if (linkSetupLanding) linkSetupLanding.addEventListener('click', setupGoogleSheetLink);
 });
 
 // Theme Management
@@ -3398,10 +3413,23 @@ window.setupMonitoringListeners = function() {
 window.syncGoogleSheet = async function() {
   showToast("Fetching day monitoring data from Google Sheet...", "info");
   try {
-    const sheetUrl = "https://docs.google.com/spreadsheets/d/1YYqRISRjhaita2IwW3FmJZJVyZeJIQr4iK5e0NPebfw/export?format=csv";
-    const response = await fetch(sheetUrl);
+    let configuredUrl = localStorage.getItem('bpcl_google_sheet_url') || 'https://docs.google.com/spreadsheets/d/1YYqRISRjhaita2IwW3FmJZJVyZeJIQr4iK5e0NPebfw/edit';
+    
+    // Auto-convert standard edit URL to CSV export URL
+    let targetUrl = configuredUrl.trim();
+    if (targetUrl.includes('docs.google.com/spreadsheets') && !targetUrl.includes('/export') && !targetUrl.includes('/pub')) {
+      if (targetUrl.includes('/edit')) {
+        targetUrl = targetUrl.replace(/\/edit.*$/, '/export?format=csv');
+      } else {
+        if (!targetUrl.endsWith('/')) targetUrl += '/';
+        targetUrl += 'export?format=csv';
+      }
+    }
+    
+    console.log("Syncing from target URL:", targetUrl);
+    const response = await fetch(targetUrl);
     if (!response.ok) {
-      throw new Error("Failed to fetch Google Sheet. Please check sharing permissions (must be set to 'Anyone with the link can view').");
+      throw new Error(`Failed to fetch Google Sheet (${response.status}). Please make sure you published to web as CSV, or shared as "Anyone with the link can view".`);
     }
     
     const arrayBuffer = await response.arrayBuffer();
@@ -3482,8 +3510,9 @@ window.syncGoogleSheet = async function() {
     document.getElementById('file-meta').style.display = 'block';
     document.getElementById('header-upload-wrapper').style.display = 'block';
     
-    // Show Sync Sheet button in header
+    // Show Sync Sheet and Configure Link in header
     document.getElementById('btn-sync-sheet').style.display = 'inline-flex';
+    document.getElementById('link-setup-sheet').style.display = 'inline-block';
     
     showToast(`Successfully synced Google Sheet with ${rawDataRows.length} outlets!`, "success");
     
