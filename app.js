@@ -108,7 +108,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   // Bind Google Sheet Link Configuration
   const setupGoogleSheetLink = () => {
-    const currentUrl = localStorage.getItem('bpcl_google_sheet_url') || 'https://docs.google.com/spreadsheets/d/1YYqRISRjhaita2IwW3FmJZJVyZeJIQr4iK5e0NPebfw/edit';
+    const currentUrl = localStorage.getItem('bpcl_google_sheet_url') || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS3EE_SNele4ucfWLc38wDtMaSB18jj2OgCw-Ze8D76Xt5657yylbThfpJ3GF9_9-I6bCcudKh4z42o/pub?output=csv';
     const newUrl = prompt("Enter your Google Sheet URL:\n(Either copy the address bar link, or use File > Share > Publish to web > CSV Link)", currentUrl);
     if (newUrl !== null && newUrl.trim() !== "") {
       localStorage.setItem('bpcl_google_sheet_url', newUrl.trim());
@@ -120,6 +120,44 @@ window.addEventListener('DOMContentLoaded', async () => {
   const linkSetupLanding = document.getElementById('link-setup-sheet-landing');
   if (linkSetup) linkSetup.addEventListener('click', setupGoogleSheetLink);
   if (linkSetupLanding) linkSetupLanding.addEventListener('click', setupGoogleSheetLink);
+
+  // Helper to restore latest data from local IndexedDB if offline
+  const restoreLatestFromHistory = async () => {
+    try {
+      if (!DB.db) await DB.open();
+      const records = await DB.getAllRecords();
+      if (records && records.length > 0) {
+        const sorted = [...records].sort((a, b) => b.timestamp - a.timestamp);
+        const latest = sorted[0];
+        console.log("Restoring latest uploaded data from IndexedDB:", latest.filename);
+        
+        window.rawDataRows = latest.rawData;
+        window.overallMetrics = latest.metrics;
+        
+        parseRawData(latest.rawData);
+        recalculateAndRefresh();
+        
+        document.getElementById('upload-landing-view').style.display = 'none';
+        document.getElementById('dashboard-active-view').style.display = 'flex';
+        
+        document.getElementById('file-meta').textContent = `Loaded from DB: ${latest.filename} (${latest.date} ${latest.time})`;
+        document.getElementById('file-meta').style.display = 'block';
+        document.getElementById('header-upload-wrapper').style.display = 'block';
+        document.getElementById('btn-sync-sheet').style.display = 'inline-flex';
+        document.getElementById('link-setup-sheet').style.display = 'inline-block';
+      }
+    } catch (e) {
+      console.error("IndexedDB startup restore failed:", e);
+    }
+  };
+
+  // Auto-sync Google Sheet on startup with local database fallback
+  try {
+    await window.syncGoogleSheet(true); // Try silent auto-sync
+  } catch (err) {
+    console.warn("Auto Google Sheet sync failed on startup, loading from local IndexedDB backup...", err);
+    await restoreLatestFromHistory();
+  }
 });
 
 // Theme Management
@@ -3428,10 +3466,10 @@ window.setupMonitoringListeners = function() {
 };
 
 // Sync live day monitoring data from Google Sheet
-window.syncGoogleSheet = async function() {
-  showToast("Fetching day monitoring data from Google Sheet...", "info");
+window.syncGoogleSheet = async function(silent = false) {
+  if (!silent) showToast("Fetching day monitoring data from Google Sheet...", "info");
   try {
-    let configuredUrl = localStorage.getItem('bpcl_google_sheet_url') || 'https://docs.google.com/spreadsheets/d/1YYqRISRjhaita2IwW3FmJZJVyZeJIQr4iK5e0NPebfw/edit';
+    let configuredUrl = localStorage.getItem('bpcl_google_sheet_url') || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS3EE_SNele4ucfWLc38wDtMaSB18jj2OgCw-Ze8D76Xt5657yylbThfpJ3GF9_9-I6bCcudKh4z42o/pub?output=csv';
     
     // Auto-convert standard edit URL to CSV export URL
     let targetUrl = configuredUrl.trim();
@@ -3532,11 +3570,15 @@ window.syncGoogleSheet = async function() {
     document.getElementById('btn-sync-sheet').style.display = 'inline-flex';
     document.getElementById('link-setup-sheet').style.display = 'inline-block';
     
-    showToast(`Successfully synced Google Sheet with ${rawDataRows.length} outlets!`, "success");
+    if (!silent) showToast(`Successfully synced Google Sheet with ${rawDataRows.length} outlets!`, "success");
     
   } catch (error) {
     console.error("Google Sheet Sync Error:", error);
-    showToast(error.message || "Failed to sync Google Sheet. Verify sharing settings.", "error");
+    if (!silent) {
+      showToast(error.message || "Failed to sync Google Sheet. Verify sharing settings.", "error");
+    } else {
+      throw error;
+    }
   }
 };
 
