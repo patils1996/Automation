@@ -45,6 +45,24 @@ let mapFilteredList = [];
 
 // Initialize application on load
 window.addEventListener('DOMContentLoaded', async () => {
+  // Register PWA Service Worker with auto-update / reload logic
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => {
+        console.log('Service Worker registered', reg);
+        reg.update();
+      })
+      .catch(err => console.log('Service Worker registration failed', err));
+      
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
+  }
+
   initTheme();
   initTabs();
   setupEventListeners();
