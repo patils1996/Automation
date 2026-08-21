@@ -77,6 +77,16 @@ window.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('load-sample-btn').addEventListener('click', () => {
     loadSampleData();
   });
+  
+  // Bind Google Sheet Sync Buttons
+  const syncBtn = document.getElementById('btn-sync-sheet');
+  const syncBtnLanding = document.getElementById('btn-sync-sheet-landing');
+  if (syncBtn) {
+    syncBtn.addEventListener('click', window.syncGoogleSheet);
+  }
+  if (syncBtnLanding) {
+    syncBtnLanding.addEventListener('click', window.syncGoogleSheet);
+  }
 });
 
 // Theme Management
@@ -472,6 +482,7 @@ window.handleUploadedFile = function(file) {
       document.getElementById('file-meta').textContent = `Loaded: ${file.name} (${rawDataRows.length} rows)`;
       document.getElementById('file-meta').style.display = 'block';
       document.getElementById('header-upload-wrapper').style.display = 'block';
+      document.getElementById('btn-sync-sheet').style.display = 'inline-flex';
       
       showToast(`Successfully processed file with ${rawDataRows.length} outlets!`, "success");
       
@@ -3380,6 +3391,105 @@ window.setupMonitoringListeners = function() {
       link.click();
       document.body.removeChild(link);
     });
+  }
+};
+
+// Sync live day monitoring data from Google Sheet
+window.syncGoogleSheet = async function() {
+  showToast("Fetching day monitoring data from Google Sheet...", "info");
+  try {
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/1YYqRISRjhaita2IwW3FmJZJVyZeJIQr4iK5e0NPebfw/export?format=csv";
+    const response = await fetch(sheetUrl);
+    if (!response.ok) {
+      throw new Error("Failed to fetch Google Sheet. Please check sharing permissions (must be set to 'Anyone with the link can view').");
+    }
+    
+    const arrayBuffer = await response.arrayBuffer();
+    const data = new Uint8Array(arrayBuffer);
+    const workbook = XLSX.read(data, {type: 'array'});
+    
+    // Process mappings sheet if exists
+    if (workbook.SheetNames.includes('EO-SO Map')) {
+      parseMappingsFromSheet(workbook.Sheets['EO-SO Map']);
+    }
+    
+    let rawDataSheetName = null;
+    if (workbook.SheetNames.includes('Raw Data')) {
+      rawDataSheetName = 'Raw Data';
+    } else {
+      rawDataSheetName = workbook.SheetNames.find(name => name.toLowerCase().includes('raw'));
+    }
+    
+    if (!rawDataSheetName) {
+      rawDataSheetName = workbook.SheetNames.find(name => {
+        const ln = name.toLowerCase();
+        return ln.includes('charger') || ln.includes('list') || ln.includes('data') || ln.includes('status');
+      });
+    }
+    
+    if (!rawDataSheetName) {
+      rawDataSheetName = workbook.SheetNames[0];
+    }
+    
+    const sheet = workbook.Sheets[rawDataSheetName];
+    const parsedData = XLSX.utils.sheet_to_json(sheet, {header: 1});
+    
+    if (parsedData.length < 3) {
+      throw new Error("Invalid sheet structure: not enough rows in Google Sheet.");
+    }
+    
+    // Parse raw rows
+    parseRawData(parsedData);
+    
+    // Recalculate metrics
+    recalculateAndRefresh();
+    
+    // Construct current timestamp
+    const now = new Date();
+    const dateStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    const timeStr = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0');
+    const timestamp = now.getTime();
+    
+    // Save to IndexedDB history
+    if (!DB.db) {
+      await DB.open();
+    }
+    
+    const record = {
+      id: timestamp,
+      timestamp: timestamp,
+      date: dateStr,
+      time: timeStr,
+      filename: "Google_Sheet_Live_Sync.xlsx",
+      metrics: Object.assign({}, window.overallMetrics),
+      rawData: JSON.parse(JSON.stringify(window.rawDataRows)),
+      fileBlob: new Blob([arrayBuffer], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})
+    };
+    
+    await DB.saveRecord(record);
+    
+    // Update trend log history if on Performance tab
+    if (typeof loadUploadHistory === 'function') {
+      await loadUploadHistory();
+    }
+    
+    // Switch views
+    document.getElementById('upload-landing-view').style.display = 'none';
+    document.getElementById('dashboard-active-view').style.display = 'flex';
+    
+    // Show header elements
+    document.getElementById('file-meta').textContent = `Loaded: Google Sheet Live Sync (${rawDataRows.length} rows)`;
+    document.getElementById('file-meta').style.display = 'block';
+    document.getElementById('header-upload-wrapper').style.display = 'block';
+    
+    // Show Sync Sheet button in header
+    document.getElementById('btn-sync-sheet').style.display = 'inline-flex';
+    
+    showToast(`Successfully synced Google Sheet with ${rawDataRows.length} outlets!`, "success");
+    
+  } catch (error) {
+    console.error("Google Sheet Sync Error:", error);
+    showToast(error.message || "Failed to sync Google Sheet. Verify sharing settings.", "error");
   }
 };
 

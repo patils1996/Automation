@@ -291,6 +291,7 @@ document.getElementById('btn-confirm-upload-save').addEventListener('click', asy
       document.getElementById('file-meta').textContent = `Loaded: ${file.name} (${window.rawDataRows.length} rows)`;
       document.getElementById('file-meta').style.display = 'block';
       document.getElementById('header-upload-wrapper').style.display = 'block';
+      document.getElementById('btn-sync-sheet').style.display = 'inline-flex';
       
       showToast(`Successfully processed & saved copy to database!`, "success");
       

@@ -108,6 +108,12 @@
         
         <span id="file-meta" style="font-size: 0.8rem; color: var(--text-muted); display: none;"></span>
         
+        <!-- Sync Google Sheet Button -->
+        <button class="btn-primary" id="btn-sync-sheet" style="display: none; padding: 0.5rem 1rem; align-items: center; gap: 0.5rem; margin-right: 0.5rem; background-color: var(--accent-teal); box-shadow: var(--shadow-raised-sm);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          Sync Sheet
+        </button>
+
         <!-- Upload File Trigger -->
         <div class="file-input-wrapper" id="header-upload-wrapper" style="display: none;">
           <button class="upload-btn-header">
@@ -134,9 +140,15 @@
             Note: If your sheet contains an "EO-SO Map" tab, mappings will auto-update.
           </p>
         </div>
-        <div class="file-input-wrapper">
-          <button class="browse-btn">Browse Files</button>
-          <input type="file" id="main-file-input" accept=".xlsx, .xls, .csv">
+        <div style="display: flex; gap: 1rem; align-items: center; justify-content: center; flex-wrap: wrap;">
+          <div class="file-input-wrapper">
+            <button class="browse-btn">Browse Files</button>
+            <input type="file" id="main-file-input" accept=".xlsx, .xls, .csv">
+          </div>
+          <button class="browse-btn" id="btn-sync-sheet-landing" style="background-color: var(--accent-teal); color: white; display: inline-flex; align-items: center; gap: 0.5rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            Sync Google Sheet
+          </button>
         </div>
         <div class="sample-download" id="load-sample-btn">Or load sample spreadsheet data</div>
       </div>
