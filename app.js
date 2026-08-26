@@ -3488,23 +3488,25 @@ window.setupMonitoringListeners = function() {
 window.syncGoogleSheet = async function(silent = false) {
   if (!silent) showToast("Fetching day monitoring data from Google Sheet...", "info");
   try {
-    let configuredUrl = localStorage.getItem('bpcl_google_sheet_url') || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS3EE_SNele4ucfWLc38wDtMaSB18jj2OgCw-Ze8D76Xt5657yylbThfpJ3GF9_9-I6bCcudKh4z42o/pub?output=csv';
+    let configuredUrl = localStorage.getItem('bpcl_google_sheet_url') || 'https://docs.google.com/spreadsheets/d/e/2PACX-1vS3EE_SNele4ucfWLc38wDtMaSB18jj2OgCw-Ze8D76Xt5657yylbThfpJ3GF9_9-I6bCcudKh4z42o/pub?output=xlsx';
     
-    // Auto-convert standard edit URL to CSV export URL
+    // Auto-convert standard edit URL to XLSX export URL
     let targetUrl = configuredUrl.trim();
     if (targetUrl.includes('docs.google.com/spreadsheets') && !targetUrl.includes('/export') && !targetUrl.includes('/pub')) {
       if (targetUrl.includes('/edit')) {
-        targetUrl = targetUrl.replace(/\/edit.*$/, '/export?format=csv');
+        targetUrl = targetUrl.replace(/\/edit.*$/, '/export?format=xlsx');
       } else {
         if (!targetUrl.endsWith('/')) targetUrl += '/';
-        targetUrl += 'export?format=csv';
+        targetUrl += 'export?format=xlsx';
       }
+    } else if (targetUrl.includes('pub?output=csv')) {
+      targetUrl = targetUrl.replace('pub?output=csv', 'pub?output=xlsx');
     }
     
     console.log("Syncing from target URL:", targetUrl);
     const response = await fetch(targetUrl);
     if (!response.ok) {
-      throw new Error(`Failed to fetch Google Sheet (${response.status}). Please make sure you published to web as CSV, or shared as "Anyone with the link can view".`);
+      throw new Error(`Failed to fetch Google Sheet (${response.status}). Please make sure you published to web, or shared as "Anyone with the link can view".`);
     }
     
     const arrayBuffer = await response.arrayBuffer();
@@ -3514,6 +3516,57 @@ window.syncGoogleSheet = async function(silent = false) {
     // Process mappings sheet if exists
     if (workbook.SheetNames.includes('EO-SO Map')) {
       parseMappingsFromSheet(workbook.Sheets['EO-SO Map']);
+    }
+    
+    // Process HistoryArchive if exists
+    if (workbook.SheetNames.includes('HistoryArchive')) {
+      try {
+        const historySheet = workbook.Sheets['HistoryArchive'];
+        const historyRows = XLSX.utils.sheet_to_json(historySheet);
+        if (historyRows && historyRows.length > 0) {
+          for (const row of historyRows) {
+            const idVal = parseInt(row.ID || row.id || row.Timestamp || row.timestamp);
+            if (isNaN(idVal)) continue;
+            
+            let metricsVal = {};
+            try {
+              metricsVal = typeof row.MetricsJSON === 'string' ? JSON.parse(row.MetricsJSON) : (row.MetricsJSON || {});
+            } catch(e) {
+              console.error("Error parsing metrics JSON", e);
+            }
+            
+            let statusMapVal = {};
+            try {
+              statusMapVal = typeof row.StatusMapJSON === 'string' ? JSON.parse(row.StatusMapJSON) : (row.StatusMapJSON || {});
+            } catch(e) {
+              console.error("Error parsing status map JSON", e);
+            }
+            
+            const rawDataList = [];
+            Object.keys(statusMapVal).forEach(roid => {
+              rawDataList.push({
+                roid: roid,
+                status: statusMapVal[roid]
+              });
+            });
+            
+            const record = {
+              id: idVal,
+              timestamp: idVal,
+              date: String(row.Date || row.date || ''),
+              time: String(row.Time || row.time || ''),
+              filename: String(row.Filename || row.filename || ''),
+              metrics: metricsVal,
+              rawData: rawDataList,
+              googleDriveFileId: String(row.GoogleDriveFileId || row.googledrivefileid || '')
+            };
+            
+            await DB.saveRecord(record);
+          }
+        }
+      } catch(e) {
+        console.error("Error parsing HistoryArchive sheet", e);
+      }
     }
     
     let rawDataSheetName = null;

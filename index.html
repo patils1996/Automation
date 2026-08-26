@@ -967,15 +967,18 @@
               <div class="panel-card folder-setup-card">
                 <div class="panel-card-header">
                   <span class="panel-card-title">Archive Reference Folder</span>
-                  <span class="panel-card-subtitle">Local Folder Archiving</span>
+                  <span class="panel-card-subtitle">Google Drive Cloud Archiving</span>
                 </div>
                 <div class="folder-setup-body">
                   <div class="folder-status-text" id="folder-status-text">
-                    No archive folder selected. Uploaded files will only be stored in browser database.
+                    Connected to Google Drive Folder:<br>
+                    <a href="https://drive.google.com/drive/folders/1x3giWLl-yft4JiXrVwaJURbDi7UYkvG-?usp=sharing" target="_blank" style="color: var(--accent-color); font-weight: 700; text-decoration: underline; word-break: break-all;">
+                      Automation Daily Archive (Shared)
+                    </a>
                   </div>
-                  <button class="btn-primary" id="btn-select-folder" style="width: 100%; justify-content: center; display: inline-flex; align-items: center; gap: 0.5rem;">
+                  <button class="btn-primary" id="btn-select-folder" style="width: 100%; justify-content: center; display: inline-flex; align-items: center; gap: 0.5rem; background-color: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-secondary); pointer-events: none; opacity: 0.6;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-                    Select Archive Folder
+                    Cloud Connected
                   </button>
                 </div>
               </div>

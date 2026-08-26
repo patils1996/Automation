@@ -129,21 +129,16 @@ async function verifyFolderPermission(handle, readWrite) {
 }
 
 async function loadArchiveFolder() {
-  try {
-    const handle = await DB.get('config', 'archiveFolderHandle');
-    if (handle) {
-      archiveDirectoryHandle = handle;
-      updateFolderStatusUI(handle.name);
-    }
-  } catch (err) {
-    console.error("Could not load archive folder handle", err);
-  }
+  updateFolderStatusUI("Automation Daily Archive (Shared)");
 }
 
 function updateFolderStatusUI(folderName) {
   const el = document.getElementById('folder-status-text');
   if (el) {
-    el.innerHTML = `Connected to archive folder: <strong style="color: var(--accent-color); font-weight: 700;">${folderName}</strong><br><span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 500;">Uploaded spreadsheets will be copied here automatically.</span>`;
+    el.innerHTML = `Connected to Google Drive Folder:<br>
+    <a href="https://drive.google.com/drive/folders/1x3giWLl-yft4JiXrVwaJURbDi7UYkvG-?usp=sharing" target="_blank" style="color: var(--accent-color); font-weight: 700; text-decoration: underline; word-break: break-all;">
+      Automation Daily Archive (Shared)
+    </a>`;
   }
 }
 
@@ -793,14 +788,21 @@ window.downloadHistoricalFile = async function(id) {
     req.onsuccess = () => {
       const record = req.result;
       if (record) {
-        const blob = record.fileBlob;
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = record.filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        showToast(`Downloaded: ${record.filename}`, "success");
+        if (record.fileBlob) {
+          const blob = record.fileBlob;
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = record.filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          showToast(`Downloaded: ${record.filename}`, "success");
+        } else if (record.googleDriveFileId) {
+          window.open(`https://drive.google.com/uc?export=download&id=${record.googleDriveFileId}`, '_blank');
+          showToast(`Downloading from Google Drive: ${record.filename}`, "success");
+        } else {
+          showToast("Spreadsheet file is not available for this record", "error");
+        }
       }
     };
   } catch (err) {
