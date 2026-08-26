@@ -1616,7 +1616,7 @@ function filterROExplorer() {
       ro.roid.includes(searchQuery) ||
       ro.outlet_name.toLowerCase().includes(searchQuery) ||
       ro.eo_name.toLowerCase().includes(searchQuery) ||
-      ro.so_name.toLowerCase().includes(searchQuery) ||
+      ro.vendor.toLowerCase().includes(searchQuery) ||
       ro.mst_name.toLowerCase().includes(searchQuery);
       
     const statusMatch = statusFilter === "" || ro.status === statusFilter;
@@ -1678,7 +1678,7 @@ function renderROExplorerPage() {
       <td title="${ro.outlet_name}">${ro.outlet_name}</td>
       <td>${ro.sales_area}</td>
       <td>${ro.eo_name}</td>
-      <td>${ro.so_name}</td>
+      <td>${ro.vendor}</td>
       <td>${ro.mst_name}</td>
       <td>${ro.auto_rsp}</td>
       <td>${ro.onb_mpd.toFixed(0)}</td>
@@ -1906,7 +1906,7 @@ function exportToCSV(dataList, filename, isSalesArea = false, isRODetails = fals
   if (isSalesArea) {
     headers = ["Sales Area", "Total ROs", "Fully Online", "Partially Online", "Offline", "Onbd MPD", "Online MPD", "MPD Uptime %", "Onbd Tank", "Online Tank", "Tank Uptime %", "AVG Uptime %", "Offline MPDs", "Offline Tanks"];
   } else if (isRODetails) {
-    headers = ["ROID", "Retail Outlet", "Sales Area", "EO Name", "SO Name", "MST Name", "Auto RSP", "Onbd MPD", "Online MPD", "Onbd Tank", "Online Tank", "Total Onbd", "Total Online", "Uptime %", "Status", "Offline MPD", "Offline Tank", "NANO Status"];
+    headers = ["ROID", "Retail Outlet", "Sales Area", "EO Name", "RA Vendor", "MST Name", "Auto RSP", "Onbd MPD", "Online MPD", "Onbd Tank", "Online Tank", "Total Onbd", "Total Online", "Uptime %", "Status", "Offline MPD", "Offline Tank", "NANO Status"];
   } else {
     headers = ["Name", "Total ROs", "Fully Online", "Partially Online", "Offline", "Onbd MPD", "Online MPD", "MPD Uptime %", "Onbd Tank", "Online Tank", "Tank Uptime %", "AVG Uptime %", "Offline MPDs", "Offline Tanks"];
   }
@@ -1921,7 +1921,7 @@ function exportToCSV(dataList, filename, isSalesArea = false, isRODetails = fals
         row.outlet_name,
         row.sales_area,
         row.eo_name,
-        row.so_name,
+        row.vendor || "Unmapped",
         row.mst_name,
         row.auto_rsp,
         row.onb_mpd,
@@ -3035,7 +3035,7 @@ window.renderMonitoringComparison = async function() {
   tbody.innerHTML = '';
   
   if (!window.calculatedROs || window.calculatedROs.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem;">No current active data loaded. Please upload a spreadsheet or load sample data.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem;">No current active data loaded. Please upload a spreadsheet or load sample data.</td></tr>`;
     return;
   }
   
@@ -3052,7 +3052,7 @@ window.renderMonitoringComparison = async function() {
   }
   
   if (records.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem;">No historical uploads in database to compare against. Please upload files to build history.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem;">No historical uploads in database to compare against. Please upload files to build history.</td></tr>`;
     return;
   }
   
@@ -3133,12 +3133,26 @@ window.renderMonitoringComparison = async function() {
     });
     monVendorSelect.value = currentVal;
   }
+
+  const monMstSelect = document.getElementById('mon-filter-mst-select');
+  if (monMstSelect) {
+    const currentVal = monMstSelect.value;
+    const msts = [...new Set(calculatedROs.map(ro => ro.mst_name))].filter(Boolean).sort();
+    monMstSelect.innerHTML = '<option value="">All</option>';
+    msts.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = m;
+      monMstSelect.appendChild(opt);
+    });
+    monMstSelect.value = currentVal;
+  }
   
   // Get active baseline record
   const baselineId = parseInt(selectEl.value);
   const baselineRecord = records.find(r => r.id === baselineId);
   if (!baselineRecord) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem;">Selected baseline record could not be found.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem;">Selected baseline record could not be found.</td></tr>`;
     return;
   }
   
@@ -3284,6 +3298,7 @@ window.renderMonitoringComparison = async function() {
   // Header filter values
   const filterMonArea = document.getElementById('mon-filter-area-select') ? document.getElementById('mon-filter-area-select').value : '';
   const filterMonVendor = document.getElementById('mon-filter-vendor-select') ? document.getElementById('mon-filter-vendor-select').value : '';
+  const filterMonMst = document.getElementById('mon-filter-mst-select') ? document.getElementById('mon-filter-mst-select').value : '';
   const filterMonBaseStatus = document.getElementById('mon-filter-base-status') ? document.getElementById('mon-filter-base-status').value : '';
   const filterMonCurrStatus = document.getElementById('mon-filter-curr-status') ? document.getElementById('mon-filter-curr-status').value : '';
   const filterMonChangeStatus = document.getElementById('mon-filter-change-status') ? document.getElementById('mon-filter-change-status').value : '';
@@ -3303,6 +3318,7 @@ window.renderMonitoringComparison = async function() {
     // 1. Column header filters
     if (filterMonArea !== "" && ro.sales_area !== filterMonArea) return false;
     if (filterMonVendor !== "" && ro.vendor !== filterMonVendor) return false;
+    if (filterMonMst !== "" && ro.mst_name !== filterMonMst) return false;
     
     if (filterMonBaseStatus !== "") {
       const isBaseMatch = (filterMonBaseStatus === "Partially Online" && baseStatus !== "Fully Online" && baseStatus !== "Offline") || (baseStatus === filterMonBaseStatus);
@@ -3341,13 +3357,14 @@ window.renderMonitoringComparison = async function() {
       return ro.roid.includes(searchVal) ||
              ro.outlet_name.toLowerCase().includes(searchVal) ||
              ro.sales_area.toLowerCase().includes(searchVal) ||
-             ro.vendor.toLowerCase().includes(searchVal);
+             ro.vendor.toLowerCase().includes(searchVal) ||
+             ro.mst_name.toLowerCase().includes(searchVal);
     }
     return true;
   });
   
   if (compareList.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 2rem;">No matching status changes found.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem;">No matching status changes found.</td></tr>`;
     return;
   }
   
@@ -3378,6 +3395,7 @@ window.renderMonitoringComparison = async function() {
       <td>${ro.outlet_name}</td>
       <td>${ro.sales_area}</td>
       <td>${ro.vendor}</td>
+      <td>${ro.mst_name}</td>
       <td><span class="status-badge status-${baseStatus.toLowerCase().replace(/ /g, '-')}">${baseStatus}</span></td>
       <td><span class="status-badge status-${currStatus.toLowerCase().replace(/ /g, '-')}">${currStatus}</span></td>
       <td style="text-align: center;">${changeHtml}</td>
@@ -3402,7 +3420,7 @@ window.setupMonitoringListeners = function() {
   }
 
   // Bind change events to column header dropdown filters
-  const headerFilters = ['mon-filter-area-select', 'mon-filter-vendor-select', 'mon-filter-base-status', 'mon-filter-curr-status', 'mon-filter-change-status'];
+  const headerFilters = ['mon-filter-area-select', 'mon-filter-vendor-select', 'mon-filter-mst-select', 'mon-filter-base-status', 'mon-filter-curr-status', 'mon-filter-change-status'];
   headerFilters.forEach(id => {
     const el = document.getElementById(id);
     if (el) {
@@ -3431,27 +3449,28 @@ window.setupMonitoringListeners = function() {
   if (btnExport) {
     btnExport.addEventListener('click', () => {
       const tbody = document.getElementById('monitoring-comparison-tbody');
-      if (!tbody || tbody.rows.length === 0 || tbody.rows[0].cells.length < 5) {
+      if (!tbody || tbody.rows.length === 0 || tbody.rows[0].cells.length < 6) {
         showToast("No comparison data to export", "error");
         return;
       }
       
       let csvContent = "data:text/csv;charset=utf-8,";
-      csvContent += "ROID,Retail Outlet,Sales Area,Vendor,Baseline Status,Current Status,Change Status\n";
+      csvContent += "ROID,Retail Outlet,Sales Area,Vendor,MST,Yesterday Status,Current Status,Change Status\n";
       
       const rows = tbody.querySelectorAll('tr');
       rows.forEach(tr => {
         const cells = tr.querySelectorAll('td');
-        if (cells.length < 6) return;
+        if (cells.length < 8) return;
         const roid = cells[0].textContent;
         const name = `"${cells[1].textContent.replace(/"/g, '""')}"`;
         const area = `"${cells[2].textContent.replace(/"/g, '""')}"`;
         const vendor = cells[3].textContent;
-        const baseStatus = cells[4].textContent;
-        const currStatus = cells[5].textContent;
-        const changeStatus = cells[6].textContent.replace(/🔴|⬇️|🟢|⬆️/g, '').trim();
+        const mst = `"${cells[4].textContent.replace(/"/g, '""')}"`;
+        const baseStatus = cells[5].textContent;
+        const currStatus = cells[6].textContent;
+        const changeStatus = cells[7].textContent.replace(/🔴|⬇️|🟢|⬆️/g, '').trim();
         
-        csvContent += `${roid},${name},${area},${vendor},${baseStatus},${currStatus},${changeStatus}\n`;
+        csvContent += `${roid},${name},${area},${vendor},${mst},${baseStatus},${currStatus},${changeStatus}\n`;
       });
       
       const encodedUri = encodeURI(csvContent);

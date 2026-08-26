@@ -533,7 +533,13 @@
                       </select>
                     </th>
                     <th>
-                      Baseline Status
+                      MST
+                      <select id="mon-filter-mst-select" class="header-filter-select">
+                        <option value="">All</option>
+                      </select>
+                    </th>
+                    <th>
+                      Yesterday Status
                       <select id="mon-filter-base-status" class="header-filter-select">
                         <option value="">All</option>
                         <option value="Fully Online">Fully Online</option>
@@ -562,7 +568,7 @@
                   </tr>
                 </thead>
                 <tbody id="monitoring-comparison-tbody">
-                  <tr><td colspan="7" style="text-align: center; padding: 2rem;">No data loaded. Please upload monitoring spreadsheet.</td></tr>
+                  <tr><td colspan="8" style="text-align: center; padding: 2rem;">No data loaded. Please upload monitoring spreadsheet.</td></tr>
                 </tbody>
               </table>
             </div>
@@ -727,7 +733,7 @@
             <div class="table-card-header">
               <h3>Retail Outlet Explorer</h3>
               <div class="search-filter-controls">
-                <input type="text" class="search-input" id="ro-search-input" placeholder="Search by ROID, Name, EO, SO, MST...">
+                <input type="text" class="search-input" id="ro-search-input" placeholder="Search by ROID, Name, EO, RA Vendor, MST...">
                 
                 <select class="filter-select" id="ro-filter-status">
                   <option value="">All Statuses</option>
@@ -766,7 +772,7 @@
                     <th data-sort="outlet_name">Retail Outlet</th>
                     <th data-sort="sales_area">Sales Area</th>
                     <th data-sort="eo_name">EO Name</th>
-                    <th data-sort="so_name">SO Name</th>
+                    <th data-sort="vendor">RA Vendor</th>
                     <th data-sort="mst_name">MST Name</th>
                     <th data-sort="auto_rsp">Auto RSP</th>
                     <th data-sort="onb_mpd">Onbd MPD</th>
