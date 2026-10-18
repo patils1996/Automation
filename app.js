@@ -382,7 +382,7 @@ function setupEventListeners() {
     exportToCSV(salesAreaSummary, 'SalesArea_Summary.csv', true);
   });
   document.getElementById('export-eo-btn').addEventListener('click', () => {
-    exportToCSV(eoSummary, 'EO_Summary.csv', false);
+    exportToCSV(eoSummary, 'TE_Summary.csv', false);
   });
   document.getElementById('export-so-btn').addEventListener('click', () => {
     exportToCSV(soSummary, 'SO_Summary.csv', false);
@@ -505,7 +505,9 @@ window.handleUploadedFile = function(file) {
       const workbook = XLSX.read(data, { type: 'array' });
       
       // 1. Process Mappings sheet if exists
-      if (workbook.SheetNames.includes('EO-SO Map')) {
+      if (workbook.SheetNames.includes('TE-SO Map')) {
+        parseMappingsFromSheet(workbook.Sheets['TE-SO Map']);
+      } else if (workbook.SheetNames.includes('EO-SO Map')) {
         parseMappingsFromSheet(workbook.Sheets['EO-SO Map']);
       }
       
@@ -605,13 +607,13 @@ function parseMappingsFromSheet(sheet) {
   
   const roidCol = headers.findIndex(h => h.includes('roid'));
   const nameCol = headers.findIndex(h => h.includes('ro name') || h.includes('outlet') || h.includes('retail'));
-  const eoCol = headers.findIndex(h => h.includes('eo name') || h.includes('eo'));
+  const eoCol = headers.findIndex(h => h.includes('te name') || h.includes('te') || h.includes('eo name') || h.includes('eo') || h.includes('territory engineer') || h.includes('executive officer'));
   const soCol = headers.findIndex(h => h.includes('so name') || h.includes('so'));
   const mstCol = headers.findIndex(h => h.includes('mst name') || h.includes('mst'));
   const groupCol = headers.findIndex(h => h.includes('sales group') || h.includes('group'));
   
   if (roidCol === -1 || eoCol === -1 || soCol === -1) {
-    showToast("Mapping sheet must contain ROID, EO Name, and SO Name columns", "error");
+    showToast("Mapping sheet must contain ROID, TE/EO Name, and SO Name columns", "error");
     return;
   }
   
@@ -747,7 +749,7 @@ function parseEvcsData(rows, headerRowIdx, headers) {
   const stationCol = headers.findIndex(h => h.includes('station name') || h.includes('station_name') || h === 'station');
   const blCol = headers.findIndex(h => h.includes('bl code') || h.includes('bl_code') || h.includes('roid') || h === 'ro id');
   const ocppCol = headers.findIndex(h => h.includes('ocpp id') || h.includes('ocpp_id') || h === 'ocpp');
-  const eoCol = headers.findIndex(h => h.includes('territory eo') || h.includes('territory_eo') || h.includes('eo') || h.includes('executive officer'));
+  const eoCol = headers.findIndex(h => h.includes('territory te') || h.includes('territory_te') || h.includes('territory eo') || h.includes('territory_eo') || h.includes('te') || h.includes('eo') || h.includes('executive officer') || h.includes('territory engineer'));
   const powerCol = headers.findIndex(h => h.includes('power rating') || h.includes('power_rating') || h.includes('power'));
   const cityCol = headers.findIndex(h => h === 'city');
   const stateCol = headers.findIndex(h => h === 'state');
@@ -1210,7 +1212,7 @@ function updateOverviewCharts() {
           const label = parseFloat(value).toFixed(1) + '%';
 
           ctx.save();
-          ctx.font = 'bold 9px Inter, system-ui, sans-serif';
+          ctx.font = 'bold 8.5px Inter, system-ui, sans-serif';
 
           if (chart.options.indexAxis === 'y') {
             // Horizontal bar → draw label to the right of bar end
@@ -1329,7 +1331,7 @@ function updateOverviewCharts() {
     }
   });
 
-  // 3. Vertical Bar/Line Mixed Chart: MPD vs Tank Comparison
+  // 3. Vertical Grouped Bar Chart: MPD vs Tank Comparison
   const equipCtx = document.getElementById('equipment-comp-chart').getContext('2d');
   if (equipmentCompChartInstance) {
     equipmentCompChartInstance.destroy();
@@ -1349,19 +1351,14 @@ function updateOverviewCharts() {
           data: mpdUptimeVals,
           backgroundColor: '#3b82f6', // Blue bars
           borderRadius: 4,
-          barThickness: 14,
-          order: 2
+          maxBarThickness: 16
         },
         {
           label: 'Tank Uptime',
           data: tankUptimeVals,
-          type: 'line',
-          borderColor: '#14b8a6', // Teal line overlay
-          borderWidth: 2,
-          pointBackgroundColor: '#14b8a6',
-          pointRadius: 4,
-          fill: false,
-          order: 1
+          backgroundColor: '#14b8a6', // Teal bars
+          borderRadius: 4,
+          maxBarThickness: 16
         }
       ]
     },
@@ -1906,7 +1903,7 @@ function exportToCSV(dataList, filename, isSalesArea = false, isRODetails = fals
   if (isSalesArea) {
     headers = ["Sales Area", "Total ROs", "Fully Online", "Partially Online", "Offline", "Onbd MPD", "Online MPD", "MPD Uptime %", "Onbd Tank", "Online Tank", "Tank Uptime %", "AVG Uptime %", "Offline MPDs", "Offline Tanks"];
   } else if (isRODetails) {
-    headers = ["ROID", "Retail Outlet", "Sales Area", "EO Name", "RA Vendor", "MST Name", "Auto RSP", "Onbd MPD", "Online MPD", "Onbd Tank", "Online Tank", "Total Onbd", "Total Online", "Uptime %", "Status", "Offline MPD", "Offline Tank", "NANO Status"];
+    headers = ["ROID", "Retail Outlet", "Sales Area", "TE Name", "RA Vendor", "MST Name", "Auto RSP", "Onbd MPD", "Online MPD", "Onbd Tank", "Online Tank", "Total Onbd", "Total Online", "Uptime %", "Status", "Offline MPD", "Offline Tank", "NANO Status"];
   } else {
     headers = ["Name", "Total ROs", "Fully Online", "Partially Online", "Offline", "Onbd MPD", "Online MPD", "MPD Uptime %", "Onbd Tank", "Online Tank", "Tank Uptime %", "AVG Uptime %", "Offline MPDs", "Offline Tanks"];
   }
@@ -2041,19 +2038,19 @@ window.openKpiDetailsModal = function(type) {
   
   if (type === 'total') {
     title = 'Total Retail Outlets';
-    headers = ["ROID", "Retail Outlet", "Sales Area", "EO Name", "SO Name", "Auto RSP", "Uptime", "Status"];
+    headers = ["ROID", "Retail Outlet", "Sales Area", "TE Name", "SO Name", "Auto RSP", "Uptime", "Status"];
     list = dashboardFilteredROs;
   } else if (type === 'fully') {
     title = 'Fully Online Outlets';
-    headers = ["ROID", "Retail Outlet", "Sales Area", "EO Name", "SO Name", "Auto RSP", "Uptime", "Status"];
+    headers = ["ROID", "Retail Outlet", "Sales Area", "TE Name", "SO Name", "Auto RSP", "Uptime", "Status"];
     list = dashboardFilteredROs.filter(ro => ro.status === "Fully Online");
   } else if (type === 'partially') {
     title = 'Partially Online Outlets';
-    headers = ["ROID", "Retail Outlet", "Sales Area", "EO Name", "SO Name", "Auto RSP", "Uptime", "Status"];
+    headers = ["ROID", "Retail Outlet", "Sales Area", "TE Name", "SO Name", "Auto RSP", "Uptime", "Status"];
     list = dashboardFilteredROs.filter(ro => ro.status === "Partially Online");
   } else if (type === 'offline') {
     title = 'Offline Outlets';
-    headers = ["ROID", "Retail Outlet", "Sales Area", "EO Name", "SO Name", "Auto RSP", "Uptime", "Status"];
+    headers = ["ROID", "Retail Outlet", "Sales Area", "TE Name", "SO Name", "Auto RSP", "Uptime", "Status"];
     list = dashboardFilteredROs.filter(ro => ro.status === "Offline");
   } else if (type === 'mpd') {
     title = 'MPD Uptime Details (Onboarded)';
@@ -2077,7 +2074,7 @@ window.openKpiDetailsModal = function(type) {
     list = dashboardFilteredROs.sort((a, b) => a.uptime - b.uptime);
   } else if (type === 'autorsp') {
     title = 'Auto RSP Outlets';
-    headers = ["ROID", "Retail Outlet", "Sales Area", "EO Name", "SO Name", "Auto RSP", "Uptime", "Status"];
+    headers = ["ROID", "Retail Outlet", "Sales Area", "TE Name", "SO Name", "Auto RSP", "Uptime", "Status"];
     list = dashboardFilteredROs.filter(ro => ro.auto_rsp.toLowerCase() === "yes" || ro.auto_rsp === "Yes");
   }
   
@@ -2166,9 +2163,9 @@ window.downloadModalCSV = function() {
   let headers = [];
   
   if (activeModalType.startsWith('evcs_')) {
-    headers = ["S.No", "Station Name", "BL Code", "OCPP ID", "Territory EO", "Power Rating", "City", "Type", "Status"];
+    headers = ["S.No", "Station Name", "BL Code", "OCPP ID", "Territory TE", "Power Rating", "City", "Type", "Status"];
   } else if (activeModalType === 'total' || activeModalType === 'fully' || activeModalType === 'partially' || activeModalType === 'offline' || activeModalType === 'autorsp') {
-    headers = ["ROID", "Retail Outlet", "Sales Area", "EO Name", "SO Name", "Auto RSP", "Uptime %", "Status"];
+    headers = ["ROID", "Retail Outlet", "Sales Area", "TE Name", "SO Name", "Auto RSP", "Uptime %", "Status"];
   } else if (activeModalType === 'mpd') {
     headers = ["ROID", "Retail Outlet", "Sales Area", "Onbd MPD", "Online MPD", "Offline MPD", "MPD Uptime %"];
   } else if (activeModalType === 'tank') {
@@ -2811,7 +2808,7 @@ window.openEvcsDetailsModal = function(type) {
   bodyEl.innerHTML = '';
   
   let list = [];
-  let headers = ["S.No", "Station Name", "BL Code", "OCPP ID", "Territory EO", "Power Rating", "City", "Type", "Status"];
+  let headers = ["S.No", "Station Name", "BL Code", "OCPP ID", "Territory TE", "Power Rating", "City", "Type", "Status"];
   let title = '';
   
   if (type === 'total') {
@@ -3514,7 +3511,9 @@ window.syncGoogleSheet = async function(silent = false) {
     const workbook = XLSX.read(data, {type: 'array'});
     
     // Process mappings sheet if exists
-    if (workbook.SheetNames.includes('EO-SO Map')) {
+    if (workbook.SheetNames.includes('TE-SO Map')) {
+      parseMappingsFromSheet(workbook.Sheets['TE-SO Map']);
+    } else if (workbook.SheetNames.includes('EO-SO Map')) {
       parseMappingsFromSheet(workbook.Sheets['EO-SO Map']);
     }
     
