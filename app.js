@@ -26,10 +26,6 @@ var vendorSummary = window.vendorSummary;
 var overallMetrics = window.overallMetrics;
 var dashboardFilteredROs = window.dashboardFilteredROs;
 
-// Charts instances
-let statusPieChartInstance = null;
-let salesAreaBarChartInstance = null;
-
 // Pagination and Sorting states
 const RO_PAGE_SIZE = 15;
 let roCurrentPage = 1;
@@ -1186,14 +1182,178 @@ function applyDashboardFilters() {
 
 // Global chart instances
 let statusDoughnutChartInstance = null;
-let eoHorizontalChartInstance = null;
 let soHorizontalChartInstance = null;
-let equipmentCompChartInstance = null;
+
+// 1. Render Sales areas Dumbbell / Range Chart & Table
+function renderSalesAreasDumbbellChart() {
+  const container = document.getElementById('sales-areas-dumbbell-container');
+  if (!container) return;
+  if (!salesAreaSummary || salesAreaSummary.length === 0) {
+    container.innerHTML = '<div style="color: #64748b; font-size: 0.85rem; padding: 2rem; text-align: center;">No sales area data available</div>';
+    return;
+  }
+
+  // Sort ascending by overall uptime (lowest first, matching user mock)
+  const sortedAreas = [...salesAreaSummary].sort((a, b) => a.uptime - b.uptime);
+
+  // Determine dynamic axis range (defaults to 88% min, or lower if data requires)
+  const allVals = sortedAreas.flatMap(s => [s.mpdUptime * 100, s.tankUptime * 100, s.uptime * 100]);
+  const minVal = allVals.length > 0 ? Math.min(...allVals) : 88;
+  let minAxis = 88;
+  if (minVal < 88) {
+    minAxis = Math.max(0, Math.floor(minVal / 4) * 4);
+  }
+  const maxAxis = 100;
+
+  function getPct(val) {
+    return Math.max(0, Math.min(100, ((val - minAxis) / (maxAxis - minAxis)) * 100));
+  }
+
+  const targetPos = getPct(95.0);
+
+  const tickStep = (maxAxis - minAxis) <= 12 ? 2 : Math.ceil((maxAxis - minAxis) / 6);
+  const ticks = [];
+  for (let t = minAxis; t <= maxAxis; t += tickStep) {
+    ticks.push(t);
+  }
+  if (ticks[ticks.length - 1] !== maxAxis) ticks.push(maxAxis);
+
+  const rowsHtml = sortedAreas.map(s => {
+    const areaName = s.key.replace(/ retail/i, '').replace(/-retail/i, '').trim();
+    const mpdNum = (s.mpdUptime * 100).toFixed(1);
+    const tankNum = (s.tankUptime * 100).toFixed(1);
+    const overallNum = (s.uptime * 100).toFixed(1) + '%';
+    
+    const mpdPos = getPct(s.mpdUptime * 100);
+    const tankPos = getPct(s.tankUptime * 100);
+    const barLeft = Math.min(mpdPos, tankPos);
+    const barWidth = Math.abs(tankPos - mpdPos);
+
+    return `
+      <div class="sa-row" onclick="toggleDashboardFilter('salesArea', '${s.key}')" style="cursor: pointer;" title="Filter by ${areaName}">
+        <div class="sa-name" title="${areaName}">${areaName}</div>
+        <div class="sa-track-wrap">
+          <div class="sa-track-bg">
+            <div class="sa-connecting-bar" style="left: ${barLeft.toFixed(1)}%; width: ${barWidth.toFixed(1)}%;"></div>
+            <div class="sa-target-line" style="left: ${targetPos.toFixed(1)}%;" title="95.0% Target Benchmark"></div>
+            <div class="sa-dot sa-dot-mpd" style="left: ${mpdPos.toFixed(1)}%;" title="${areaName} MPD: ${mpdNum}%"></div>
+            <div class="sa-dot sa-dot-tank" style="left: ${tankPos.toFixed(1)}%;" title="${areaName} Tank: ${tankNum}%"></div>
+          </div>
+        </div>
+        <div class="sa-num-mpd">${mpdNum}</div>
+        <div class="sa-num-tank">${tankNum}</div>
+        <div class="sa-num-overall">${overallNum}</div>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = `
+    <div class="sa-table-header">
+      <div class="sa-col-area">AREA</div>
+      <div class="sa-col-track" style="text-align: center; color: #64748b; font-size: 0.7rem;">MPD / TANK RANGE</div>
+      <div class="sa-col-val" style="color: #38bdf8;">MPD</div>
+      <div class="sa-col-val" style="color: #2dd4bf;">TANK</div>
+      <div class="sa-col-val overall" style="color: #fbbf24;">OVERALL</div>
+    </div>
+    <div class="sa-rows-container">
+      ${rowsHtml}
+    </div>
+    <div class="sa-axis-row">
+      <div class="sa-col-area"></div>
+      <div class="sa-axis-ticks">
+        ${ticks.map(t => `<span>${t}%</span>`).join('')}
+      </div>
+      <div class="sa-col-val"></div>
+      <div class="sa-col-val"></div>
+      <div class="sa-col-val overall"></div>
+    </div>
+    <div class="sa-legend">
+      <div class="sa-legend-item">
+        <span class="legend-dot-mpd"></span>
+        <span>MPD</span>
+      </div>
+      <div class="sa-legend-item">
+        <span class="legend-dot-tank"></span>
+        <span>Tank</span>
+      </div>
+      <div class="sa-legend-item">
+        <span class="legend-line-target"></span>
+        <span>95% target</span>
+      </div>
+    </div>
+  `;
+}
+
+// 2. Render Territory Engineers Benchmark Progress Chart
+function renderTerritoryEngineersChart() {
+  const container = document.getElementById('territory-engineers-container');
+  if (!container) return;
+  if (!eoSummary || eoSummary.length === 0) {
+    container.innerHTML = '<div style="color: #64748b; font-size: 0.85rem; padding: 2rem; text-align: center;">No territory engineer data available</div>';
+    return;
+  }
+
+  // Sorted lowest uptime first (matching user mock)
+  const sortedEOs = [...eoSummary].sort((a, b) => a.uptime - b.uptime);
+
+  const lowestUptime = Math.min(...sortedEOs.map(e => e.uptime * 100));
+  const minTeAxis = lowestUptime < 85 ? Math.max(0, Math.floor(lowestUptime / 5) * 5) : 85;
+  const maxTeAxis = 100;
+  const targetMarkerPos = Math.max(0, Math.min(100, ((95.0 - minTeAxis) / (maxTeAxis - minTeAxis)) * 100));
+
+  const rowsHtml = sortedEOs.map(e => {
+    const uptimePct = e.uptime * 100;
+    const uptimeFormatted = uptimePct.toFixed(1) + '%';
+    const fillWidth = Math.max(4, Math.min(100, ((uptimePct - minTeAxis) / (maxTeAxis - minTeAxis)) * 100));
+    const colorClass = (uptimePct >= 95.0) ? 'green' : 'amber';
+    return `
+      <div class="te-row" onclick="toggleDashboardFilter('eoName', '${e.key}')" style="cursor: pointer;" title="Filter by ${e.key}">
+        <div class="te-name" title="${e.key}">${e.key}</div>
+        <div class="te-bar-wrap">
+          <div class="te-bar-fill ${colorClass}" style="width: ${fillWidth.toFixed(1)}%;"></div>
+          <div class="te-target-marker" style="left: ${targetMarkerPos.toFixed(1)}%;" title="95.0% Benchmark Target"></div>
+        </div>
+        <div class="te-val">${uptimeFormatted}</div>
+      </div>
+    `;
+  }).join('');
+
+  // Calculate unmapped outlets note
+  const unmappedList = (calculatedROs || []).filter(ro => !ro.eo_name || ro.eo_name === 'Unmapped' || ro.eo_name.toLowerCase() === 'unassigned');
+  let footerNoteHtml = '';
+  if (unmappedList.length > 0) {
+    const unmappedTotOnb = unmappedList.reduce((acc, r) => acc + (r.tot_onb || 0), 0);
+    const unmappedTotOnl = unmappedList.reduce((acc, r) => acc + (r.tot_onl || 0), 0);
+    const unmappedUptime = unmappedTotOnb > 0 ? (unmappedTotOnl / unmappedTotOnb) * 100 : 100;
+    const names = unmappedList.map(r => r.outlet_name).slice(0, 2).join(', ');
+    const more = unmappedList.length > 2 ? ` and ${unmappedList.length - 2} more` : '';
+    const isAre = unmappedList.length > 1 ? 'are' : 'is';
+    const hasHave = unmappedList.length > 1 ? 'have' : 'has';
+    footerNoteHtml = `
+      <div class="te-footer-note">
+        <strong style="color: #cbd5e1;">Unmapped outlets:</strong> ${unmappedList.length} outlet${unmappedList.length > 1 ? 's' : ''} (${names}${more}) ${hasHave} no territory engineer assigned and ${isAre} running at <strong style="color: #10b981;">${unmappedUptime.toFixed(1)}% uptime</strong>.
+      </div>
+    `;
+  } else {
+    footerNoteHtml = `
+      <div class="te-footer-note">
+        <strong style="color: #cbd5e1;">All outlets:</strong> 100% of network outlets are actively assigned to mapped Territory Engineers.
+      </div>
+    `;
+  }
+
+  container.innerHTML = `
+    <div class="te-list">
+      ${rowsHtml}
+    </div>
+    ${footerNoteHtml}
+  `;
+}
 
 // Render Overview Charts
 function updateOverviewCharts() {
-  const textColor = '#4a5568'; // Neumorphic light text
-  const gridColor = 'rgba(163, 177, 198, 0.4)'; // Neumorphic soft grid lines
+  const textColor = '#4a5568';
+  const gridColor = 'rgba(163, 177, 198, 0.4)';
 
   // Custom inline plugin: draws % labels on bar charts
   const barDataLabels = {
@@ -1201,7 +1361,6 @@ function updateOverviewCharts() {
     afterDatasetsDraw(chart) {
       const ctx = chart.ctx;
       chart.data.datasets.forEach((dataset, datasetIndex) => {
-        // Skip line overlays
         if (dataset.type === 'line') return;
         const meta = chart.getDatasetMeta(datasetIndex);
         if (meta.hidden) return;
@@ -1215,13 +1374,11 @@ function updateOverviewCharts() {
           ctx.font = 'bold 8.5px Inter, system-ui, sans-serif';
 
           if (chart.options.indexAxis === 'y') {
-            // Horizontal bar → draw label to the right of bar end
             ctx.fillStyle = '#2d3748';
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
             ctx.fillText(label, bar.x + 4, bar.y);
           } else {
-            // Vertical bar → draw label above bar
             ctx.fillStyle = '#2d3748';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
@@ -1233,256 +1390,98 @@ function updateOverviewCharts() {
     }
   };
 
+  // 1. Detailed Dumbbell / Range Chart for Sales Areas
+  renderSalesAreasDumbbellChart();
 
-  // 1. Doughnut Chart: RO Status Breakdown
-  const doughnutCtx = document.getElementById('status-doughnut-chart').getContext('2d');
-  if (statusDoughnutChartInstance) {
-    statusDoughnutChartInstance.destroy();
-  }
-  
-  statusDoughnutChartInstance = new Chart(doughnutCtx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Fully Online', 'Partially Online', 'Offline'],
-      datasets: [{
-        data: [overallMetrics.fullyOnline, overallMetrics.partiallyOnline, overallMetrics.offline],
-        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], // Green, Yellow, Red
-        borderWidth: 4,
-        borderColor: '#e0e5ec'
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'right',
-          labels: {
-            color: textColor,
-            font: { family: 'Inter', size: 10, weight: '600' },
-            boxWidth: 12
-          }
-        }
-      },
-      cutout: '70%'
+  // 2. Territory Engineers Benchmark Progress Chart
+  renderTerritoryEngineersChart();
+
+  // 3. Doughnut Chart: RO Status Breakdown
+  const doughnutCanvas = document.getElementById('status-doughnut-chart');
+  if (doughnutCanvas) {
+    const doughnutCtx = doughnutCanvas.getContext('2d');
+    if (statusDoughnutChartInstance) {
+      statusDoughnutChartInstance.destroy();
     }
-  });
-  
-  // 2. Horizontal Bar Chart: Sales Area Performance
-  const barCtx = document.getElementById('sales-area-bar-chart').getContext('2d');
-  if (salesAreaBarChartInstance) {
-    salesAreaBarChartInstance.destroy();
+    
+    statusDoughnutChartInstance = new Chart(doughnutCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Fully Online', 'Partially Online', 'Offline'],
+        datasets: [{
+          data: [overallMetrics.fullyOnline, overallMetrics.partiallyOnline, overallMetrics.offline],
+          backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], // Green, Yellow, Red
+          borderWidth: 4,
+          borderColor: '#e0e5ec'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+            labels: {
+              color: textColor,
+              font: { family: 'Inter', size: 10, weight: '600' },
+              boxWidth: 12
+            }
+          }
+        },
+        cutout: '70%'
+      }
+    });
   }
-  
-  const salesAreaLabels = salesAreaSummary.map(s => s.key.replace(' Retail', '').replace('-retail', ''));
-  const salesAreaUptimeVals = salesAreaSummary.map(s => (s.uptime * 100).toFixed(1));
-  const avgLineData = Array(salesAreaLabels.length).fill((overallMetrics.uptime * 100).toFixed(1));
-  
-  salesAreaBarChartInstance = new Chart(barCtx, {
-    type: 'bar',
-    plugins: [barDataLabels],
-    data: {
-      labels: salesAreaLabels,
-      datasets: [
-        {
+
+  // 4. Horizontal Bar Chart: SOs by Uptime
+  const soCanvas = document.getElementById('so-horizontal-chart');
+  if (soCanvas) {
+    const soCtx = soCanvas.getContext('2d');
+    if (soHorizontalChartInstance) {
+      soHorizontalChartInstance.destroy();
+    }
+    
+    const sortedSoSummary = [...soSummary].sort((a, b) => b.uptime - a.uptime);
+    const soLabels = sortedSoSummary.map(s => s.key);
+    const soVals = sortedSoSummary.map(s => (s.uptime * 100).toFixed(1));
+    
+    soHorizontalChartInstance = new Chart(soCtx, {
+      type: 'bar',
+      plugins: [barDataLabels],
+      data: {
+        labels: soLabels,
+        datasets: [{
           label: 'Uptime %',
-          data: salesAreaUptimeVals,
-          backgroundColor: '#6366f1', // Indigo bars
+          data: soVals,
+          backgroundColor: '#8b5cf6',
           borderRadius: 4,
-          barThickness: 12,
-          order: 2
-        },
-        {
-          label: 'Territory Avg',
-          data: avgLineData,
-          type: 'line',
-          borderColor: '#f59e0b',
-          borderDash: [5, 5],
-          borderWidth: 1.5,
-          pointRadius: 0,
-          fill: false,
-          order: 1
-        }
-      ]
-    },
-    options: {
-      indexAxis: 'y', // Horizontal bars
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false }
+          barThickness: 10
+        }]
       },
-      scales: {
-        x: {
-          min: 0,
-          max: 115, // Extra room for label text after bar
-          grid: { color: gridColor },
-          ticks: {
-            color: textColor,
-            font: { family: 'Inter', size: 9 },
-            callback: value => value <= 100 ? value + '%' : ''
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            min: 0,
+            max: 115,
+            grid: { color: gridColor },
+            ticks: {
+              color: textColor,
+              font: { family: 'Inter', size: 9 },
+              callback: value => value <= 100 ? value + '%' : ''
+            }
+          },
+          y: {
+            grid: { display: false },
+            ticks: { color: textColor, font: { family: 'Inter', size: 8, weight: '600' } }
           }
-        },
-        y: {
-          grid: { display: false },
-          ticks: { color: textColor, font: { family: 'Inter', size: 9, weight: '600' } }
         }
       }
-    }
-  });
-
-  // 3. Vertical Grouped Bar Chart: MPD vs Tank Comparison
-  const equipCtx = document.getElementById('equipment-comp-chart').getContext('2d');
-  if (equipmentCompChartInstance) {
-    equipmentCompChartInstance.destroy();
+    });
   }
-  
-  const mpdUptimeVals = salesAreaSummary.map(s => (s.mpdUptime * 100).toFixed(1));
-  const tankUptimeVals = salesAreaSummary.map(s => (s.tankUptime * 100).toFixed(1));
-  
-  equipmentCompChartInstance = new Chart(equipCtx, {
-    type: 'bar',
-    plugins: [barDataLabels],
-    data: {
-      labels: salesAreaLabels,
-      datasets: [
-        {
-          label: 'MPD Uptime',
-          data: mpdUptimeVals,
-          backgroundColor: '#3b82f6', // Blue bars
-          borderRadius: 4,
-          maxBarThickness: 16
-        },
-        {
-          label: 'Tank Uptime',
-          data: tankUptimeVals,
-          backgroundColor: '#14b8a6', // Teal bars
-          borderRadius: 4,
-          maxBarThickness: 16
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: true,
-          position: 'top',
-          labels: { color: textColor, font: { family: 'Inter', size: 9, weight: '600' } }
-        }
-      },
-      scales: {
-        x: {
-          grid: { display: false },
-          ticks: { color: textColor, font: { family: 'Inter', size: 9, weight: '600' } }
-        },
-        y: {
-          min: 0,
-          max: 110, // Extra room for label text above bar
-          grid: { color: gridColor },
-          ticks: {
-            color: textColor,
-            font: { family: 'Inter', size: 9 },
-            callback: value => value <= 100 ? value + '%' : ''
-          }
-        }
-      }
-    }
-  });
-
-  // 4. Horizontal Chart: EOs by Uptime
-  const eoCtx = document.getElementById('eo-horizontal-chart').getContext('2d');
-  if (eoHorizontalChartInstance) {
-    eoHorizontalChartInstance.destroy();
-  }
-  
-  const eoLabels = eoSummary.map(e => e.key);
-  const eoVals = eoSummary.map(e => (e.uptime * 100).toFixed(1));
-  
-  eoHorizontalChartInstance = new Chart(eoCtx, {
-    type: 'bar',
-    plugins: [barDataLabels],
-    data: {
-      labels: eoLabels,
-      datasets: [{
-        label: 'Uptime %',
-        data: eoVals,
-        backgroundColor: '#8b5cf6', // Purple bars
-        borderRadius: 4,
-        barThickness: 12
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: {
-          min: 0,
-          max: 115,
-          grid: { color: gridColor },
-          ticks: {
-            color: textColor,
-            font: { family: 'Inter', size: 9 },
-            callback: value => value <= 100 ? value + '%' : ''
-          }
-        },
-        y: {
-          grid: { display: false },
-          ticks: { color: textColor, font: { family: 'Inter', size: 9, weight: '600' } }
-        }
-      }
-    }
-  });
-
-  // 5. Horizontal Chart: SOs by Uptime
-  const soCtx = document.getElementById('so-horizontal-chart').getContext('2d');
-  if (soHorizontalChartInstance) {
-    soHorizontalChartInstance.destroy();
-  }
-  
-  const sortedSoSummary = [...soSummary].sort((a, b) => b.uptime - a.uptime);
-  const soLabels = sortedSoSummary.map(s => s.key);
-  const soVals = sortedSoSummary.map(s => (s.uptime * 100).toFixed(1));
-  
-  soHorizontalChartInstance = new Chart(soCtx, {
-    type: 'bar',
-    plugins: [barDataLabels],
-    data: {
-      labels: soLabels,
-      datasets: [{
-        label: 'Uptime %',
-        data: soVals,
-        backgroundColor: '#8b5cf6',
-        borderRadius: 4,
-        barThickness: 10
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: {
-          min: 0,
-          max: 115,
-          grid: { color: gridColor },
-          ticks: {
-            color: textColor,
-            font: { family: 'Inter', size: 9 },
-            callback: value => value <= 100 ? value + '%' : ''
-          }
-        },
-        y: {
-          grid: { display: false },
-          ticks: { color: textColor, font: { family: 'Inter', size: 8, weight: '600' } }
-        }
-      }
-    }
-  });
 }
 
 // Render Sales Area Table

@@ -1350,3 +1350,341 @@ main {
   }
 }
 
+/* =========================================================
+   Featured 2-Card Layout (Sales areas Dumbbell + TE Benchmarks)
+   ========================================================= */
+.dashboard-featured-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+  align-items: stretch;
+}
+
+.dashboard-secondary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 280px;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-featured-grid {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-secondary-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Modern Analytics Card Styling (Dark Slate Aesthetic matching user mock) */
+.modern-analytics-card {
+  background: #0f172a !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 14px !important;
+  padding: 1.5rem !important;
+  color: #f8fafc !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.modern-analytics-card .panel-card-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.modern-analytics-card .panel-card-title {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  color: #f8fafc !important;
+  margin-bottom: 0.25rem;
+  letter-spacing: -0.3px;
+}
+
+.modern-analytics-card .panel-card-subtitle {
+  font-size: 0.84rem !important;
+  color: #94a3b8 !important;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* Sales Areas Dumbbell Chart & Table */
+.sa-table-header {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 0 0.5rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.sa-col-area {
+  width: 95px;
+  flex-shrink: 0;
+}
+
+.sa-col-track {
+  flex: 1;
+  margin: 0 1.25rem;
+}
+
+.sa-col-val {
+  width: 48px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.sa-col-val.overall {
+  width: 60px;
+}
+
+.sa-row {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.15s ease;
+}
+
+.sa-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+}
+
+.sa-name {
+  width: 95px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #f8fafc;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sa-track-wrap {
+  flex: 1;
+  margin: 0 1.25rem;
+  position: relative;
+  height: 24px;
+  display: flex;
+  align-items: center;
+}
+
+.sa-track-bg {
+  width: 100%;
+  height: 2px;
+  background: #1e293b;
+  position: relative;
+}
+
+.sa-connecting-bar {
+  position: absolute;
+  height: 4px;
+  top: -1px;
+  background: rgba(56, 189, 248, 0.35);
+  border-radius: 2px;
+}
+
+.sa-target-line {
+  position: absolute;
+  top: -9px;
+  height: 20px;
+  width: 0;
+  border-left: 2px dashed #eab308;
+  z-index: 1;
+}
+
+.sa-dot {
+  position: absolute;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.sa-dot:hover {
+  transform: translate(-50%, -50%) scale(1.35);
+}
+
+.sa-dot-mpd {
+  background: #38bdf8;
+  border: 2px solid #0f172a;
+  box-shadow: 0 0 6px rgba(56, 189, 248, 0.6);
+}
+
+.sa-dot-tank {
+  background: #2dd4bf;
+  border: 2px solid #0f172a;
+  box-shadow: 0 0 6px rgba(45, 212, 191, 0.6);
+}
+
+.sa-num-mpd {
+  width: 48px;
+  text-align: right;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #f87171;
+  flex-shrink: 0;
+}
+
+.sa-num-tank {
+  width: 48px;
+  text-align: right;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #2dd4bf;
+  flex-shrink: 0;
+}
+
+.sa-num-overall {
+  width: 60px;
+  text-align: right;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #fbbf24;
+  flex-shrink: 0;
+}
+
+.sa-axis-row {
+  display: flex;
+  align-items: center;
+  padding-top: 0.6rem;
+}
+
+.sa-axis-ticks {
+  flex: 1;
+  margin: 0 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.sa-legend {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.78rem;
+  color: #94a3b8;
+}
+
+.sa-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.legend-dot-mpd {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #38bdf8;
+  display: inline-block;
+}
+
+.legend-dot-tank {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #2dd4bf;
+  display: inline-block;
+}
+
+.legend-line-target {
+  width: 0;
+  height: 12px;
+  border-left: 2px dashed #eab308;
+  display: inline-block;
+}
+
+/* Territory Engineers Chart */
+.te-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  margin-top: 1.25rem;
+  flex: 1;
+}
+
+.te-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.te-name {
+  width: 140px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #f8fafc;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.te-bar-wrap {
+  flex: 1;
+  position: relative;
+  height: 14px;
+  background: #1e293b;
+  border-radius: 7px;
+  overflow: visible;
+}
+
+.te-bar-fill {
+  height: 100%;
+  border-radius: 7px;
+  transition: width 0.4s ease;
+}
+
+.te-bar-fill.amber {
+  background: #f59e0b;
+}
+
+.te-bar-fill.green {
+  background: #10b981;
+}
+
+.te-target-marker {
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: 20px;
+  background: #eab308;
+  border-radius: 1px;
+  z-index: 2;
+}
+
+.te-val {
+  width: 55px;
+  text-align: right;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #f8fafc;
+  flex-shrink: 0;
+}
+
+.te-footer-note {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.45;
+  margin-top: 1.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
