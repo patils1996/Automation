@@ -14,7 +14,7 @@
   <script src="xlsx.full.min.js"></script>
   <script src="chart.umd.min.js"></script>
   
-  <link rel="stylesheet" href="styles.css?v=12">
+  <link rel="stylesheet" href="styles.css">
   
   <!-- PWA Manifest & Icons -->
   <link rel="manifest" href="manifest.json">
@@ -223,59 +223,71 @@
               </div>
             </div>
 
-            <!-- Featured 2-Card Analytics Row (Replacing Sales Area, Equipment & TE charts) -->
-            <div class="dashboard-featured-grid">
+            <!-- 3-Column Layout from Mockup -->
+            <div class="dashboard-grid-layout">
               
-              <!-- Card 1: Sales areas Dumbbell / Range Chart & Data Table -->
-              <div class="panel-card modern-analytics-card" id="card-sales-areas-detailed">
-                <div class="panel-card-header">
-                  <div class="panel-card-title">Sales areas</div>
-                  <div class="panel-card-subtitle">Uptime and the split between MPD (blue) and tank (teal). Target 95% is marked.</div>
+              <!-- Left Column: Horizontal Bar Charts -->
+              <div class="col-left">
+                <!-- Card: Sales Area Trend -->
+                <div class="panel-card">
+                  <div class="panel-card-header">
+                    <span class="panel-card-title">Sales Area Performance</span>
+                    <span class="panel-card-subtitle">Uptime Trend</span>
+                  </div>
+                  <div class="chart-canvas-container">
+                    <canvas id="sales-area-bar-chart"></canvas>
+                  </div>
                 </div>
-                <div id="sales-areas-dumbbell-container">
-                  <!-- Populated dynamically by renderSalesAreasDumbbellChart() -->
+                
+                <!-- Card: Top TEs -->
+                <div class="panel-card">
+                  <div class="panel-card-header">
+                    <span class="panel-card-title">Territory Engineer (TE)</span>
+                    <span class="panel-card-subtitle">Uptime Performance</span>
+                  </div>
+                  <div class="chart-canvas-container" style="height: 160px;">
+                    <canvas id="eo-horizontal-chart"></canvas>
+                  </div>
+                </div>
+
+                <!-- Card: Top SOs -->
+                <div class="panel-card">
+                  <div class="panel-card-header">
+                    <span class="panel-card-title">Sales Officers (SO)</span>
+                    <span class="panel-card-subtitle">Uptime Performance</span>
+                  </div>
+                  <div class="chart-canvas-container" style="height: 160px;">
+                    <canvas id="so-horizontal-chart"></canvas>
+                  </div>
                 </div>
               </div>
 
-              <!-- Card 2: Territory engineers Benchmark Progress Bars -->
-              <div class="panel-card modern-analytics-card" id="card-territory-engineers-detailed">
-                <div class="panel-card-header">
-                  <div class="panel-card-title">Territory engineers</div>
-                  <div class="panel-card-subtitle">Overall uptime against the 95% benchmark. Ranked lowest first.</div>
+              <!-- Center Column: Vertical Comparison & Doughnuts -->
+              <div class="col-center">
+                <!-- Card: MPD vs Tank Comparison -->
+                <div class="panel-card">
+                  <div class="panel-card-header">
+                    <span class="panel-card-title">Equipment Performance Summary</span>
+                    <span class="panel-card-subtitle">MPD vs Tank Uptime</span>
+                  </div>
+                  <div class="chart-canvas-container" style="height: 250px;">
+                    <canvas id="equipment-comp-chart"></canvas>
+                  </div>
                 </div>
-                <div id="territory-engineers-container" style="display: flex; flex-direction: column; flex: 1;">
-                  <!-- Populated dynamically by renderTerritoryEngineersChart() -->
+
+                <!-- Card: Doughnut Uptime Breakdown -->
+                <div class="panel-card">
+                  <div class="panel-card-header">
+                    <span class="panel-card-title">RO Uptime Status Distribution</span>
+                    <span class="panel-card-subtitle">Outlets Status Breakdown</span>
+                  </div>
+                  <div class="chart-canvas-container" style="height: 250px; display: flex; align-items: center; justify-content: center;">
+                    <canvas id="status-doughnut-chart"></canvas>
+                  </div>
                 </div>
               </div>
 
-            </div>
-
-            <!-- Secondary Analytics & Filters Grid -->
-            <div class="dashboard-secondary-grid">
-              
-              <!-- Card: Top SOs -->
-              <div class="panel-card">
-                <div class="panel-card-header">
-                  <span class="panel-card-title">Sales Officers (SO)</span>
-                  <span class="panel-card-subtitle">Uptime Performance</span>
-                </div>
-                <div class="chart-canvas-container" style="height: 250px;">
-                  <canvas id="so-horizontal-chart"></canvas>
-                </div>
-              </div>
-
-              <!-- Card: Doughnut Uptime Breakdown -->
-              <div class="panel-card">
-                <div class="panel-card-header">
-                  <span class="panel-card-title">RO Uptime Status Distribution</span>
-                  <span class="panel-card-subtitle">Outlets Status Breakdown</span>
-                </div>
-                <div class="chart-canvas-container" style="height: 250px; display: flex; align-items: center; justify-content: center;">
-                  <canvas id="status-doughnut-chart"></canvas>
-                </div>
-              </div>
-
-              <!-- Interactive Filter Panel -->
+              <!-- Right Column: Interactive Filter Panel -->
               <div class="col-right">
                 <button class="filter-pill reset-btn" id="filter-reset-global-btn" onclick="resetGlobalDashboardFilters()" style="width: 100%; text-align: center; justify-content: center; padding: 0.5rem; margin-bottom: 0.5rem; display: none;">
                   Reset Dashboard Filters
@@ -1191,7 +1203,7 @@
   <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
 
   <script src="sample_data.js"></script>
-  <script src="app.js?v=12"></script>
-  <script src="trend.js?v=12"></script>
+  <script src="app.js"></script>
+  <script src="trend.js"></script>
 </body>
 </html>
