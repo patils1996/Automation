@@ -1220,14 +1220,19 @@ function renderSalesAreasDumbbellChart() {
 
   const rowsHtml = sortedAreas.map(s => {
     const areaName = s.key.replace(/ retail/i, '').replace(/-retail/i, '').trim();
-    const mpdNum = (s.mpdUptime * 100).toFixed(1);
-    const tankNum = (s.tankUptime * 100).toFixed(1);
-    const overallNum = (s.uptime * 100).toFixed(1) + '%';
+    const mpdVal = s.mpdUptime * 100;
+    const tankVal = s.tankUptime * 100;
+    const overallVal = s.uptime * 100;
+
+    const mpdNum = mpdVal.toFixed(1);
+    const tankNum = tankVal.toFixed(1);
+    const overallNum = overallVal.toFixed(1) + '%';
     
-    const mpdPos = getPct(s.mpdUptime * 100);
-    const tankPos = getPct(s.tankUptime * 100);
+    const mpdPos = getPct(mpdVal);
+    const tankPos = getPct(tankVal);
     const barLeft = Math.min(mpdPos, tankPos);
     const barWidth = Math.abs(tankPos - mpdPos);
+    const mpdClass = mpdVal < 95.0 ? 'below-target' : 'above-target';
 
     return `
       <div class="sa-row" onclick="toggleDashboardFilter('salesArea', '${s.key}')" style="cursor: pointer;" title="Filter by ${areaName}">
@@ -1240,7 +1245,7 @@ function renderSalesAreasDumbbellChart() {
             <div class="sa-dot sa-dot-tank" style="left: ${tankPos.toFixed(1)}%;" title="${areaName} Tank: ${tankNum}%"></div>
           </div>
         </div>
-        <div class="sa-num-mpd">${mpdNum}</div>
+        <div class="sa-num-mpd ${mpdClass}">${mpdNum}</div>
         <div class="sa-num-tank">${tankNum}</div>
         <div class="sa-num-overall">${overallNum}</div>
       </div>

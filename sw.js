@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bpcl-dashboard-v11';
+const CACHE_NAME = 'bpcl-dashboard-v12';
 const ASSETS = [
   './',
   './index.html',
@@ -36,10 +36,22 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+// Network-First strategy: Always fetch latest version from network, fall back to cache when offline
 self.addEventListener('fetch', (e) => {
+  if (e.request.method !== 'GET') return;
   e.respondWith(
-    caches.match(e.request).then((cachedResponse) => {
-      return cachedResponse || fetch(e.request);
-    })
+    fetch(e.request)
+      .then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(e.request, responseToCache);
+          });
+        }
+        return networkResponse;
+      })
+      .catch(() => {
+        return caches.match(e.request);
+      })
   );
 });
