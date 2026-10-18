@@ -3361,7 +3361,7 @@ window.renderMonitoringComparison = async function() {
   });
   
   if (compareList.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem;">No matching status changes found.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 2rem;">No matching status changes found.</td></tr>`;
     return;
   }
   
@@ -3386,6 +3386,9 @@ window.renderMonitoringComparison = async function() {
       changeHtml = `<span style="color: var(--text-muted); font-weight: 600;">⎌ Unchanged</span>`;
     }
     
+    const offMpdVal = ro.off_mpd !== undefined ? ro.off_mpd.toFixed(0) : "0";
+    const offTnkVal = ro.off_tnk !== undefined ? ro.off_tnk.toFixed(0) : "0";
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${ro.roid}</td>
@@ -3396,6 +3399,8 @@ window.renderMonitoringComparison = async function() {
       <td><span class="status-badge status-${baseStatus.toLowerCase().replace(/ /g, '-')}">${baseStatus}</span></td>
       <td><span class="status-badge status-${currStatus.toLowerCase().replace(/ /g, '-')}">${currStatus}</span></td>
       <td style="text-align: center;">${changeHtml}</td>
+      <td style="text-align: center; font-weight: 700; color: ${ro.off_mpd > 0 ? 'var(--accent-red)' : 'var(--text-muted)'};">${offMpdVal}</td>
+      <td style="text-align: center; font-weight: 700; color: ${ro.off_tnk > 0 ? 'var(--accent-red)' : 'var(--text-muted)'};">${offTnkVal}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -3446,18 +3451,18 @@ window.setupMonitoringListeners = function() {
   if (btnExport) {
     btnExport.addEventListener('click', () => {
       const tbody = document.getElementById('monitoring-comparison-tbody');
-      if (!tbody || tbody.rows.length === 0 || tbody.rows[0].cells.length < 6) {
+      if (!tbody || tbody.rows.length === 0 || tbody.rows[0].cells.length < 8) {
         showToast("No comparison data to export", "error");
         return;
       }
       
       let csvContent = "data:text/csv;charset=utf-8,";
-      csvContent += "ROID,Retail Outlet,Sales Area,Vendor,MST,Yesterday Status,Current Status,Change Status\n";
+      csvContent += "ROID,Retail Outlet,Sales Area,Vendor,MST,Yesterday Status,Current Status,Change Status,Offline MPDs,Offline Tanks\n";
       
       const rows = tbody.querySelectorAll('tr');
       rows.forEach(tr => {
         const cells = tr.querySelectorAll('td');
-        if (cells.length < 8) return;
+        if (cells.length < 10) return;
         const roid = cells[0].textContent;
         const name = `"${cells[1].textContent.replace(/"/g, '""')}"`;
         const area = `"${cells[2].textContent.replace(/"/g, '""')}"`;
@@ -3466,8 +3471,10 @@ window.setupMonitoringListeners = function() {
         const baseStatus = cells[5].textContent;
         const currStatus = cells[6].textContent;
         const changeStatus = cells[7].textContent.replace(/🔴|⬇️|🟢|⬆️/g, '').trim();
+        const offMpd = cells[8].textContent.trim();
+        const offTnk = cells[9].textContent.trim();
         
-        csvContent += `${roid},${name},${area},${vendor},${mst},${baseStatus},${currStatus},${changeStatus}\n`;
+        csvContent += `${roid},${name},${area},${vendor},${mst},${baseStatus},${currStatus},${changeStatus},${offMpd},${offTnk}\n`;
       });
       
       const encodedUri = encodeURI(csvContent);
