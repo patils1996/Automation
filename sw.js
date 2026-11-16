@@ -1,23 +1,32 @@
-const CACHE_NAME = 'bpcl-dashboard-v13';
+const CACHE_NAME = 'bpcl-dashboard-v14';
 const ASSETS = [
   './',
   './index.html',
   './styles.css',
   './app.js',
   './trend.js',
+  './comparison.js',
+  './new_logic_dashboard.js',
+  './outlets_status.js',
+  './whatsapp_alerts.js',
+  './whatsapp_config.js',
+  './day_monitoring_config.js',
   './sample_data.js',
   './xlsx.full.min.js',
   './chart.umd.min.js',
+  './bpcl_logo_card.png',
+  './bpcl_canopy_faded.png',
+  './sidebar_skyline.png',
   './manifest.json',
   './icon-192.png',
   './icon-512.png'
 ];
 
 self.addEventListener('install', (e) => {
-  self.skipWaiting(); // Force active update instantly
+  self.skipWaiting();
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
+      return cache.addAll(ASSETS).catch(err => console.warn('Cache addAll failed:', err));
     })
   );
 });
@@ -28,7 +37,7 @@ self.addEventListener('activate', (e) => {
       return Promise.all(
         keys.map((key) => {
           if (key !== CACHE_NAME) {
-            return caches.delete(key); // Clear old cached versions
+            return caches.delete(key);
           }
         })
       );
@@ -38,8 +47,8 @@ self.addEventListener('activate', (e) => {
 
 self.addEventListener('fetch', (e) => {
   e.respondWith(
-    caches.match(e.request).then((cachedResponse) => {
-      return cachedResponse || fetch(e.request);
+    caches.match(e.request).then((res) => {
+      return res || fetch(e.request);
     })
   );
 });

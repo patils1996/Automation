@@ -131,10 +131,12 @@ window.addEventListener('DOMContentLoaded', async () => {
         const latest = sorted[0];
         console.log("Restoring latest uploaded data from IndexedDB:", latest.filename);
         
-        window.rawDataRows = latest.rawData;
+        // Stored rawData is already parsed row objects — load it directly (re-parsing crashes)
+        rawDataRows.length = 0;
+        (latest.rawData || []).forEach(r => rawDataRows.push(r));
         window.overallMetrics = latest.metrics;
-        
-        parseRawData(latest.rawData);
+        window.dashboardMode = (latest.rawData[0] && latest.rawData[0].station_name !== undefined) ? 'evcs' : 'automation';
+
         recalculateAndRefresh();
         
         document.getElementById('upload-landing-view').style.display = 'none';
@@ -281,6 +283,13 @@ function setupEventListeners() {
     roCurrentPage = 1;
     filterROExplorer();
   });
+  const roNlFilter = document.getElementById('ro-filter-new-logic');
+  if (roNlFilter) {
+    roNlFilter.addEventListener('change', () => {
+      roCurrentPage = 1;
+      filterROExplorer();
+    });
+  }
   document.getElementById('ro-filter-status').addEventListener('change', () => {
     roCurrentPage = 1;
     filterROExplorer();
@@ -302,6 +311,13 @@ function setupEventListeners() {
   document.getElementById('day-search-input').addEventListener('input', () => {
     renderDayMonitoringTable();
   });
+
+  // Save a complete daily snapshot to Google Drive
+  const saveDayDriveBtn = document.getElementById('save-day-monitoring-drive-btn');
+  if (saveDayDriveBtn) {
+    saveDayDriveBtn.addEventListener('click', window.saveDailyDayMonitoringToDrive);
+  }
+
 
   // Day Monitoring Header Filters
   ['day-filter-area', 'day-filter-vendor', 'day-filter-status', 'day-filter-tech', 'day-filter-resp'].forEach(id => {
@@ -394,7 +410,8 @@ function setupEventListeners() {
     });
   }
   document.getElementById('export-ro-btn').addEventListener('click', () => {
-    exportToCSV(calculatedROs, 'RetailOutlet_Details.csv', false, true);
+    const listToExport = (roFilteredList && roFilteredList.length >= 0) ? roFilteredList : calculatedROs;
+    exportToCSV(listToExport, 'RetailOutlet_Details.csv', false, true);
   });
   const exportDayBtn = document.getElementById('export-day-monitoring-btn');
   if (exportDayBtn) {
@@ -493,6 +510,24 @@ function recalculateAndRefresh() {
     
     // Day Monitoring header filters
     populateDayMonitoringHeaderFilters();
+    
+    // Notify comparison engine if present
+    if (typeof window.onDashboardDataUpdated === 'function') {
+      window.onDashboardDataUpdated();
+    }
+    
+    // Notify New Logic Dashboard
+    // Notify Outlets Status (2 Slot Partial & Offline Sites)
+    if (typeof window.populateOutletsStatusFilters === 'function') {
+      window.populateOutletsStatusFilters();
+    }
+    if (typeof window.renderOutletsStatusTable === 'function') {
+      window.renderOutletsStatusTable();
+    }
+
+    if (typeof window.renderNewLogicDashboard === 'function') {
+      window.renderNewLogicDashboard();
+    }
   }
 }
 
@@ -535,6 +570,14 @@ window.handleUploadedFile = function(file) {
       
       const sheet = workbook.Sheets[rawDataSheetName];
       const parsedData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+      
+      // Cache raw sheet JSON objects for New Logic Dashboard
+      try {
+        window.rawSheetObjects = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: true });
+        window.lastUploadedFileName = file.name;
+      } catch (eRaw) {
+        console.warn('Could not cache rawSheetObjects', eRaw);
+      }
       
       if (parsedData.length < 3) {
         showToast("Invalid sheet structure: not enough rows", "error");
@@ -710,7 +753,17 @@ function parseAutomationData(rows, headerRowIdx, headers) {
   }
   
   const autoRspCol = headers.findIndex(h => h.includes('auto rsp') || h.includes('autorsp') || h.includes('auto_rsp'));
+  const mpdPctCol = headers.findIndex(h => h === 'mpd online%' || h === 'mpd online %' || (h.includes('mpd') && h.includes('online') && h.includes('%')));
+  const tankPctCol = headers.findIndex(h => h === 'tank online%' || h === 'tank online %' || h === 'atg online%' || h === 'atg online %' || (h.includes('tank') && h.includes('online') && h.includes('%')) || (h.includes('atg') && h.includes('online') && h.includes('%')));
+  const avgRoOnlineCol = headers.findIndex(h => h === 'avg ro online%' || h === 'avg ro online %' || (h.includes('avg') && h.includes('online') && h.includes('%')));
   const iotCol = headers.findIndex(h => h.includes('iot enabl') || h.includes('iot enabled') || h.includes('iot_enabled') || h === 'iot');
+  let roOnlineCol = headers.findIndex(h => h === "ro's online" || h === "ro online status" || h === "ro's online status" || h === "ro online" || h === "ro status");
+  if (roOnlineCol === -1) {
+    roOnlineCol = headers.findIndex(h => h.includes("online") && (h.includes("ro") || h.includes("ro's")) && !h.includes("%") && !h.includes("avg") && !h.includes("mpd") && !h.includes("tank"));
+  }
+  if (roOnlineCol === -1 && headers.length > 21) {
+    roOnlineCol = 21; // Column V is standard index 21
+  }
   
   if (roidCol === -1) {
     throw new Error("Could not find 'ROID' or 'RO ID' column in header row!");
@@ -729,7 +782,36 @@ function parseAutomationData(rows, headerRowIdx, headers) {
     if (isNaN(roidVal)) continue;
     
     const iotVal = iotCol !== -1 && row[iotCol] ? String(row[iotCol]).trim() : (roidVal % 3 !== 0 ? "Yes" : "No");
+
+    let roOnlineVal = "";
+    if (roOnlineCol !== -1 && row[roOnlineCol] !== undefined && row[roOnlineCol] !== null) {
+      const candidate = String(row[roOnlineCol]).trim();
+      if (candidate.toLowerCase().includes('on') || candidate.toLowerCase().includes('part') || candidate.toLowerCase().includes('off')) {
+        roOnlineVal = candidate;
+      }
+    }
+    if (!roOnlineVal && row.length > 21 && row[21] !== undefined && row[21] !== null) {
+      const candidate21 = String(row[21]).trim();
+      if (candidate21.toLowerCase().includes('on') || candidate21.toLowerCase().includes('part') || candidate21.toLowerCase().includes('off')) {
+        roOnlineVal = candidate21;
+      }
+    }
     
+    if (!roOnlineVal && row.length > 23 && row[23] !== undefined && row[23] !== null) {
+      const candidate23 = String(row[23]).trim();
+      if (candidate23.toLowerCase().includes('on') || candidate23.toLowerCase().includes('part') || candidate23.toLowerCase().includes('off')) {
+        roOnlineVal = candidate23;
+      }
+    }
+
+    const parsePctVal = col => {
+      if (col === -1 || row[col] === undefined || row[col] === null || String(row[col]).trim() === '') return null;
+      let s = String(row[col]).trim().replace(/,/g, '').replace('%', '');
+      let n = parseFloat(s);
+      if (isNaN(n)) return null;
+      return String(row[col]).includes('%') || n > 1 ? n / 100 : n;
+    };
+
     rawDataRows.push({
       roid: String(roidVal),
       outlet_name: nameCol !== -1 && row[nameCol] ? String(row[nameCol]).trim() : "",
@@ -740,7 +822,11 @@ function parseAutomationData(rows, headerRowIdx, headers) {
       onb_tnk: onbTnkCol !== -1 && row[onbTnkCol] !== undefined ? parseFloat(row[onbTnkCol]) : 0,
       onl_tnk: onlTnkCol !== -1 && row[onlTnkCol] !== undefined ? parseFloat(row[onlTnkCol]) : 0,
       auto_rsp: autoRspCol !== -1 && row[autoRspCol] ? String(row[autoRspCol]).trim() : "No",
-      iot_enabled: iotVal
+      iot_enabled: iotVal,
+      ro_online_status: roOnlineVal,
+      mpd_online_pct: parsePctVal(mpdPctCol),
+      tank_online_pct: parsePctVal(tankPctCol),
+      avg_ro_online_pct: parsePctVal(avgRoOnlineCol)
     });
   }
 }
@@ -845,6 +931,36 @@ function processCalculations(rows) {
     
     const iot_status = (row.iot_enabled && (row.iot_enabled.toLowerCase() === 'yes' || row.iot_enabled === 'Yes')) ? 'IOT' : 'WFCC';
     
+    // Determine New Logic Status
+    let new_logic_status = "Offline";
+    const rawNl = String(row.ro_online_status || '').trim();
+    if (rawNl) {
+      const lowerNl = rawNl.toLowerCase();
+      if (lowerNl === 'fully online' || lowerNl === 'online') {
+        new_logic_status = 'Fully Online';
+      } else if (lowerNl === 'partially online' || lowerNl === 'partial' || lowerNl.includes('part')) {
+        new_logic_status = 'Partially Online';
+      } else if (lowerNl === 'offline' || lowerNl.includes('off')) {
+        new_logic_status = 'Offline';
+      } else {
+        new_logic_status = rawNl;
+      }
+    } else {
+      const mo = Number(row.onb_mpd), mp = Number(row.onl_mpd);
+      const ao = Number(row.onb_tnk), ap = Number(row.onl_tnk);
+      if ([mo, mp, ao, ap].some(v => !isNaN(v) && v > 0)) {
+        if ((isNaN(mp) || mp === 0) && (isNaN(ap) || ap === 0)) {
+          new_logic_status = 'Offline';
+        } else if ((!isNaN(mo) && !isNaN(mp) && mp < mo) || (!isNaN(ao) && !isNaN(ap) && ap < ao)) {
+          new_logic_status = 'Partially Online';
+        } else {
+          new_logic_status = 'Fully Online';
+        }
+      } else {
+        new_logic_status = status;
+      }
+    }
+
     calculatedROs.push({
       roid: row.roid,
       outlet_name: outlet_name,
@@ -863,10 +979,15 @@ function processCalculations(rows) {
       tot_onl: tot_onl,
       uptime: uptime,
       status: status,
+      ro_online_status: row.ro_online_status || status,
+      new_logic_status: new_logic_status,
       condition: condition,
       nano_status: nano_status,
       off_mpd: off_mpd,
-      off_tnk: off_tnk
+      off_tnk: off_tnk,
+      mpd_online_pct: row.mpd_online_pct !== undefined ? row.mpd_online_pct : null,
+      tank_online_pct: row.tank_online_pct !== undefined ? row.tank_online_pct : null,
+      avg_ro_online_pct: row.avg_ro_online_pct !== undefined ? row.avg_ro_online_pct : null
     });
   });
   
@@ -1022,10 +1143,15 @@ function finalizeAggregate(obj) {
 
 // Render Dashboard KPI Metric Cards
 function updateDashboardKPIs() {
-  document.getElementById('kpi-total-ros').textContent = overallMetrics.totalROs;
-  document.getElementById('kpi-fully-online').textContent = overallMetrics.fullyOnline;
-  document.getElementById('kpi-partially-online').textContent = overallMetrics.partiallyOnline;
-  document.getElementById('kpi-offline').textContent = overallMetrics.offline;
+  const total = overallMetrics.totalROs || 0;
+  const fully = overallMetrics.fullyOnline || 0;
+  const partial = overallMetrics.partiallyOnline || 0;
+  const offline = overallMetrics.offline || 0;
+
+  document.getElementById('kpi-total-ros').textContent = total;
+  document.getElementById('kpi-fully-online').textContent = fully;
+  document.getElementById('kpi-partially-online').textContent = partial;
+  document.getElementById('kpi-offline').textContent = offline;
   document.getElementById('kpi-mpd-uptime').textContent = (overallMetrics.mpdUptime * 100).toFixed(2) + "%";
   document.getElementById('kpi-tank-uptime').textContent = (overallMetrics.tankUptime * 100).toFixed(2) + "%";
   
@@ -1038,11 +1164,38 @@ function updateDashboardKPIs() {
     autoRspVal.textContent = (overallMetrics.autoRspPct * 100).toFixed(2) + "%";
   }
   
-  // Update header subtitle with Territory Average Uptime and load details
-  document.getElementById('app-subtitle').textContent = `Territory Uptime: ${uptimePct} | MPD Uptime: ${(overallMetrics.mpdUptime * 100).toFixed(1)}% | Tank Uptime: ${(overallMetrics.tankUptime * 100).toFixed(1)}% | Auto RSP: ${(overallMetrics.autoRspPct * 100).toFixed(1)}%`;
+  // Update header subtitle
+  const subEl = document.getElementById('app-subtitle');
+  if (subEl) {
+    subEl.textContent = "Automation | IFMS | Uptime Monitoring";
+  }
   
   // Update header badge with outlets count
-  document.getElementById('header-outlets-badge').textContent = `${overallMetrics.totalROs} Outlets`;
+  const countEl = document.getElementById('header-outlets-count');
+  if (countEl) countEl.textContent = `${total} Outlets`;
+  const badgeEl = document.getElementById('header-outlets-badge');
+  if (badgeEl && !countEl) badgeEl.textContent = `${total} Outlets`;
+
+  const metaRows = document.getElementById('file-meta-rows');
+  if (metaRows) metaRows.textContent = `(${total} rows)`;
+
+  // Update status summary numbers and percentages (both Donut legend and Right Status card)
+  const calcTotal = total > 0 ? total : (fully + partial + offline);
+  const onlPct = calcTotal > 0 ? ((fully / calcTotal) * 100).toFixed(2) : "0.00";
+  const partPct = calcTotal > 0 ? ((partial / calcTotal) * 100).toFixed(2) : "0.00";
+  const offPct = calcTotal > 0 ? ((offline / calcTotal) * 100).toFixed(2) : "0.00";
+
+  const onlText = `${fully} (${onlPct}%)`;
+  const partText = `${partial} (${partPct}%)`;
+  const offText = `${offline} (${offPct}%)`;
+
+  const dOnl = document.getElementById('donut-val-online'); if (dOnl) dOnl.textContent = onlText;
+  const dPart = document.getElementById('donut-val-partial'); if (dPart) dPart.textContent = partText;
+  const dOff = document.getElementById('donut-val-offline'); if (dOff) dOff.textContent = offText;
+
+  const sOnl = document.getElementById('status-cnt-online'); if (sOnl) sOnl.textContent = onlText;
+  const sPart = document.getElementById('status-cnt-partial'); if (sPart) sPart.textContent = partText;
+  const sOff = document.getElementById('status-cnt-offline'); if (sOff) sOff.textContent = offText;
 }
 
 // Global dashboard filters
@@ -1192,8 +1345,8 @@ let equipmentCompChartInstance = null;
 
 // Render Overview Charts
 function updateOverviewCharts() {
-  const textColor = '#4a5568'; // Neumorphic light text
-  const gridColor = 'rgba(163, 177, 198, 0.4)'; // Neumorphic soft grid lines
+  const textColor = '#475569';
+  const gridColor = '#e2e8f0';
 
   // Custom inline plugin: draws % labels on bar charts
   const barDataLabels = {
@@ -1201,7 +1354,6 @@ function updateOverviewCharts() {
     afterDatasetsDraw(chart) {
       const ctx = chart.ctx;
       chart.data.datasets.forEach((dataset, datasetIndex) => {
-        // Skip line overlays
         if (dataset.type === 'line') return;
         const meta = chart.getDatasetMeta(datasetIndex);
         if (meta.hidden) return;
@@ -1212,17 +1364,17 @@ function updateOverviewCharts() {
           const label = parseFloat(value).toFixed(1) + '%';
 
           ctx.save();
-          ctx.font = 'bold 8.5px Inter, system-ui, sans-serif';
+          ctx.font = 'bold 9px Inter, system-ui, sans-serif';
 
           if (chart.options.indexAxis === 'y') {
             // Horizontal bar → draw label to the right of bar end
-            ctx.fillStyle = '#2d3748';
+            ctx.fillStyle = '#0f172a';
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
-            ctx.fillText(label, bar.x + 4, bar.y);
+            ctx.fillText(label, bar.x + 5, bar.y);
           } else {
             // Vertical bar → draw label above bar
-            ctx.fillStyle = '#2d3748';
+            ctx.fillStyle = '#0f172a';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
             ctx.fillText(label, bar.x, bar.y - 3);
@@ -1233,256 +1385,296 @@ function updateOverviewCharts() {
     }
   };
 
+  // Center text plugin for doughnut chart
+  const centerTextPlugin = {
+    id: 'centerTextPlugin',
+    beforeDraw(chart) {
+      if (chart.config.type !== 'doughnut') return;
+      const { ctx, chartArea } = chart;
+      if (!chartArea) return;
+      const { top, bottom, left, right } = chartArea;
+      ctx.save();
+      const centerX = (left + right) / 2;
+      const centerY = (top + bottom) / 2;
+
+      const total = overallMetrics.totalROs || 392;
+      ctx.font = 'bold 20px Inter, system-ui, sans-serif';
+      ctx.fillStyle = '#00204a';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(total, centerX, centerY - 8);
+
+      ctx.font = '700 11px Inter, system-ui, sans-serif';
+      ctx.fillStyle = '#64748b';
+      ctx.fillText('Outlets', centerX, centerY + 12);
+      ctx.restore();
+    }
+  };
 
   // 1. Doughnut Chart: RO Status Breakdown
-  const doughnutCtx = document.getElementById('status-doughnut-chart').getContext('2d');
-  if (statusDoughnutChartInstance) {
-    statusDoughnutChartInstance.destroy();
-  }
-  
-  statusDoughnutChartInstance = new Chart(doughnutCtx, {
-    type: 'doughnut',
-    data: {
-      labels: ['Fully Online', 'Partially Online', 'Offline'],
-      datasets: [{
-        data: [overallMetrics.fullyOnline, overallMetrics.partiallyOnline, overallMetrics.offline],
-        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], // Green, Yellow, Red
-        borderWidth: 4,
-        borderColor: '#e0e5ec'
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'right',
-          labels: {
-            color: textColor,
-            font: { family: 'Inter', size: 10, weight: '600' },
-            boxWidth: 12
-          }
-        }
-      },
-      cutout: '70%'
+  const doughnutEl = document.getElementById('status-doughnut-chart');
+  if (doughnutEl) {
+    const doughnutCtx = doughnutEl.getContext('2d');
+    if (statusDoughnutChartInstance) {
+      statusDoughnutChartInstance.destroy();
     }
-  });
+    
+    statusDoughnutChartInstance = new Chart(doughnutCtx, {
+      type: 'doughnut',
+      plugins: [centerTextPlugin],
+      data: {
+        labels: ['Online', 'Partial', 'Offline'],
+        datasets: [{
+          data: [overallMetrics.fullyOnline, overallMetrics.partiallyOnline, overallMetrics.offline],
+          backgroundColor: ['#16a34a', '#eab308', '#dc2626'],
+          borderWidth: 2,
+          borderColor: '#ffffff'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        cutout: '68%'
+      }
+    });
+
+    // Update status breakdown labels in legend and right status card
+    const total = overallMetrics.totalROs || (overallMetrics.fullyOnline + overallMetrics.partiallyOnline + overallMetrics.offline);
+    const onlPct = total > 0 ? ((overallMetrics.fullyOnline / total) * 100).toFixed(2) : "0.00";
+    const partPct = total > 0 ? ((overallMetrics.partiallyOnline / total) * 100).toFixed(2) : "0.00";
+    const offPct = total > 0 ? ((overallMetrics.offline / total) * 100).toFixed(2) : "0.00";
+
+    const onlText = `${overallMetrics.fullyOnline} (${onlPct}%)`;
+    const partText = `${overallMetrics.partiallyOnline} (${partPct}%)`;
+    const offText = `${overallMetrics.offline} (${offPct}%)`;
+
+    const dOnl = document.getElementById('donut-val-online'); if (dOnl) dOnl.textContent = onlText;
+    const dPart = document.getElementById('donut-val-partial'); if (dPart) dPart.textContent = partText;
+    const dOff = document.getElementById('donut-val-offline'); if (dOff) dOff.textContent = offText;
+
+    const sOnl = document.getElementById('status-cnt-online'); if (sOnl) sOnl.textContent = onlText;
+    const sPart = document.getElementById('status-cnt-partial'); if (sPart) sPart.textContent = partText;
+    const sOff = document.getElementById('status-cnt-offline'); if (sOff) sOff.textContent = offText;
+  }
   
   // 2. Horizontal Bar Chart: Sales Area Performance
-  const barCtx = document.getElementById('sales-area-bar-chart').getContext('2d');
-  if (salesAreaBarChartInstance) {
-    salesAreaBarChartInstance.destroy();
+  const barEl = document.getElementById('sales-area-bar-chart');
+  if (barEl) {
+    const barCtx = barEl.getContext('2d');
+    if (salesAreaBarChartInstance) {
+      salesAreaBarChartInstance.destroy();
+    }
+    
+    const salesAreaLabels = salesAreaSummary.map(s => s.key.replace(' Retail', '').replace('-retail', ''));
+    const salesAreaUptimeVals = salesAreaSummary.map(s => (s.uptime * 100).toFixed(1));
+    
+    salesAreaBarChartInstance = new Chart(barCtx, {
+      type: 'bar',
+      plugins: [barDataLabels],
+      data: {
+        labels: salesAreaLabels,
+        datasets: [
+          {
+            label: 'Uptime %',
+            data: salesAreaUptimeVals,
+            backgroundColor: '#7c3aed', // Purple bars matching photo
+            borderRadius: 4,
+            barThickness: 14
+          }
+        ]
+      },
+      options: {
+        indexAxis: 'y', // Horizontal bars
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: {
+            min: 0,
+            max: 110,
+            grid: { color: gridColor },
+            ticks: {
+              color: textColor,
+              font: { family: 'Inter', size: 9 },
+              callback: value => value <= 100 ? value + '%' : ''
+            }
+          },
+          y: {
+            grid: { display: false },
+            ticks: { color: textColor, font: { family: 'Inter', size: 9, weight: '600' } }
+          }
+        }
+      }
+    });
   }
-  
-  const salesAreaLabels = salesAreaSummary.map(s => s.key.replace(' Retail', '').replace('-retail', ''));
-  const salesAreaUptimeVals = salesAreaSummary.map(s => (s.uptime * 100).toFixed(1));
-  const avgLineData = Array(salesAreaLabels.length).fill((overallMetrics.uptime * 100).toFixed(1));
-  
-  salesAreaBarChartInstance = new Chart(barCtx, {
-    type: 'bar',
-    plugins: [barDataLabels],
-    data: {
-      labels: salesAreaLabels,
-      datasets: [
-        {
+
+  // 3. Equipment Performance Summary (MPD vs Tank Uptime)
+  const equipEl = document.getElementById('equipment-comp-chart');
+  if (equipEl) {
+    const equipCtx = equipEl.getContext('2d');
+    if (equipmentCompChartInstance) {
+      equipmentCompChartInstance.destroy();
+    }
+    
+    const salesAreaLabels = salesAreaSummary.map(s => s.key.replace(' Retail', '').replace('-retail', ''));
+    const mpdUptimeVals = salesAreaSummary.map(s => (s.mpdUptime * 100).toFixed(1));
+    const tankUptimeVals = salesAreaSummary.map(s => (s.tankUptime * 100).toFixed(1));
+    
+    equipmentCompChartInstance = new Chart(equipCtx, {
+      type: 'bar',
+      plugins: [barDataLabels],
+      data: {
+        labels: salesAreaLabels,
+        datasets: [
+          {
+            label: 'MPD Uptime',
+            data: mpdUptimeVals,
+            backgroundColor: '#2563eb', // Royal Blue
+            borderRadius: 3,
+            maxBarThickness: 14
+          },
+          {
+            label: 'Tank Uptime',
+            data: tankUptimeVals,
+            backgroundColor: '#0d9488', // Teal
+            borderRadius: 3,
+            maxBarThickness: 14
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: { color: textColor, font: { family: 'Inter', size: 9, weight: '600' }, boxWidth: 12 }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: textColor, font: { family: 'Inter', size: 9, weight: '600' } }
+          },
+          y: {
+            min: 0,
+            max: 110,
+            grid: { color: gridColor },
+            ticks: {
+              color: textColor,
+              font: { family: 'Inter', size: 9 },
+              callback: value => value <= 100 ? value + '%' : ''
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // 4. Horizontal Chart: Territory Engineer (TE) Uptime Performance
+  const eoEl = document.getElementById('eo-horizontal-chart');
+  if (eoEl) {
+    const eoCtx = eoEl.getContext('2d');
+    if (eoHorizontalChartInstance) {
+      eoHorizontalChartInstance.destroy();
+    }
+    
+    const eoLabels = eoSummary.map(e => e.key);
+    const eoVals = eoSummary.map(e => (e.uptime * 100).toFixed(1));
+    
+    eoHorizontalChartInstance = new Chart(eoCtx, {
+      type: 'bar',
+      plugins: [barDataLabels],
+      data: {
+        labels: eoLabels,
+        datasets: [{
           label: 'Uptime %',
-          data: salesAreaUptimeVals,
-          backgroundColor: '#6366f1', // Indigo bars
+          data: eoVals,
+          backgroundColor: '#7c3aed', // Purple bars matching photo
           borderRadius: 4,
-          barThickness: 12,
-          order: 2
-        },
-        {
-          label: 'Territory Avg',
-          data: avgLineData,
-          type: 'line',
-          borderColor: '#f59e0b',
-          borderDash: [5, 5],
-          borderWidth: 1.5,
-          pointRadius: 0,
-          fill: false,
-          order: 1
-        }
-      ]
-    },
-    options: {
-      indexAxis: 'y', // Horizontal bars
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false }
+          barThickness: 14
+        }]
       },
-      scales: {
-        x: {
-          min: 0,
-          max: 115, // Extra room for label text after bar
-          grid: { color: gridColor },
-          ticks: {
-            color: textColor,
-            font: { family: 'Inter', size: 9 },
-            callback: value => value <= 100 ? value + '%' : ''
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            min: 0,
+            max: 110,
+            grid: { color: gridColor },
+            ticks: {
+              color: textColor,
+              font: { family: 'Inter', size: 9 },
+              callback: value => value <= 100 ? value + '%' : ''
+            }
+          },
+          y: {
+            grid: { display: false },
+            ticks: { color: textColor, font: { family: 'Inter', size: 9, weight: '600' } }
           }
-        },
-        y: {
-          grid: { display: false },
-          ticks: { color: textColor, font: { family: 'Inter', size: 9, weight: '600' } }
         }
       }
-    }
-  });
-
-  // 3. Vertical Grouped Bar Chart: MPD vs Tank Comparison
-  const equipCtx = document.getElementById('equipment-comp-chart').getContext('2d');
-  if (equipmentCompChartInstance) {
-    equipmentCompChartInstance.destroy();
+    });
   }
-  
-  const mpdUptimeVals = salesAreaSummary.map(s => (s.mpdUptime * 100).toFixed(1));
-  const tankUptimeVals = salesAreaSummary.map(s => (s.tankUptime * 100).toFixed(1));
-  
-  equipmentCompChartInstance = new Chart(equipCtx, {
-    type: 'bar',
-    plugins: [barDataLabels],
-    data: {
-      labels: salesAreaLabels,
-      datasets: [
-        {
-          label: 'MPD Uptime',
-          data: mpdUptimeVals,
-          backgroundColor: '#3b82f6', // Blue bars
+
+  // 5. Horizontal Chart: SOs by Uptime (optional if present in DOM)
+  const soEl = document.getElementById('so-horizontal-chart');
+  if (soEl) {
+    const soCtx = soEl.getContext('2d');
+    if (soHorizontalChartInstance) {
+      soHorizontalChartInstance.destroy();
+    }
+    
+    const sortedSoSummary = [...soSummary].sort((a, b) => b.uptime - a.uptime);
+    const soLabels = sortedSoSummary.map(s => s.key);
+    const soVals = sortedSoSummary.map(s => (s.uptime * 100).toFixed(1));
+    
+    soHorizontalChartInstance = new Chart(soCtx, {
+      type: 'bar',
+      plugins: [barDataLabels],
+      data: {
+        labels: soLabels,
+        datasets: [{
+          label: 'Uptime %',
+          data: soVals,
+          backgroundColor: '#7c3aed',
           borderRadius: 4,
-          maxBarThickness: 16
-        },
-        {
-          label: 'Tank Uptime',
-          data: tankUptimeVals,
-          backgroundColor: '#14b8a6', // Teal bars
-          borderRadius: 4,
-          maxBarThickness: 16
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: true,
-          position: 'top',
-          labels: { color: textColor, font: { family: 'Inter', size: 9, weight: '600' } }
-        }
+          barThickness: 10
+        }]
       },
-      scales: {
-        x: {
-          grid: { display: false },
-          ticks: { color: textColor, font: { family: 'Inter', size: 9, weight: '600' } }
-        },
-        y: {
-          min: 0,
-          max: 110, // Extra room for label text above bar
-          grid: { color: gridColor },
-          ticks: {
-            color: textColor,
-            font: { family: 'Inter', size: 9 },
-            callback: value => value <= 100 ? value + '%' : ''
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            min: 0,
+            max: 110,
+            grid: { color: gridColor },
+            ticks: {
+              color: textColor,
+              font: { family: 'Inter', size: 9 },
+              callback: value => value <= 100 ? value + '%' : ''
+            }
+          },
+          y: {
+            grid: { display: false },
+            ticks: { color: textColor, font: { family: 'Inter', size: 8, weight: '600' } }
           }
         }
       }
-    }
-  });
-
-  // 4. Horizontal Chart: EOs by Uptime
-  const eoCtx = document.getElementById('eo-horizontal-chart').getContext('2d');
-  if (eoHorizontalChartInstance) {
-    eoHorizontalChartInstance.destroy();
+    });
   }
-  
-  const eoLabels = eoSummary.map(e => e.key);
-  const eoVals = eoSummary.map(e => (e.uptime * 100).toFixed(1));
-  
-  eoHorizontalChartInstance = new Chart(eoCtx, {
-    type: 'bar',
-    plugins: [barDataLabels],
-    data: {
-      labels: eoLabels,
-      datasets: [{
-        label: 'Uptime %',
-        data: eoVals,
-        backgroundColor: '#8b5cf6', // Purple bars
-        borderRadius: 4,
-        barThickness: 12
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: {
-          min: 0,
-          max: 115,
-          grid: { color: gridColor },
-          ticks: {
-            color: textColor,
-            font: { family: 'Inter', size: 9 },
-            callback: value => value <= 100 ? value + '%' : ''
-          }
-        },
-        y: {
-          grid: { display: false },
-          ticks: { color: textColor, font: { family: 'Inter', size: 9, weight: '600' } }
-        }
-      }
-    }
-  });
-
-  // 5. Horizontal Chart: SOs by Uptime
-  const soCtx = document.getElementById('so-horizontal-chart').getContext('2d');
-  if (soHorizontalChartInstance) {
-    soHorizontalChartInstance.destroy();
-  }
-  
-  const sortedSoSummary = [...soSummary].sort((a, b) => b.uptime - a.uptime);
-  const soLabels = sortedSoSummary.map(s => s.key);
-  const soVals = sortedSoSummary.map(s => (s.uptime * 100).toFixed(1));
-  
-  soHorizontalChartInstance = new Chart(soCtx, {
-    type: 'bar',
-    plugins: [barDataLabels],
-    data: {
-      labels: soLabels,
-      datasets: [{
-        label: 'Uptime %',
-        data: soVals,
-        backgroundColor: '#8b5cf6',
-        borderRadius: 4,
-        barThickness: 10
-      }]
-    },
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: {
-          min: 0,
-          max: 115,
-          grid: { color: gridColor },
-          ticks: {
-            color: textColor,
-            font: { family: 'Inter', size: 9 },
-            callback: value => value <= 100 ? value + '%' : ''
-          }
-        },
-        y: {
-          grid: { display: false },
-          ticks: { color: textColor, font: { family: 'Inter', size: 8, weight: '600' } }
-        }
-      }
-    }
-  });
 }
 
 // Render Sales Area Table
@@ -1606,6 +1798,8 @@ function filterROExplorer() {
   const nanoFilter = document.getElementById('ro-filter-nano').value;
   const areaFilter = document.getElementById('ro-filter-area').value;
   const techFilter = document.getElementById('ro-filter-technology').value;
+  const nlFilterEl = document.getElementById('ro-filter-new-logic');
+  const nlFilter = nlFilterEl ? nlFilterEl.value : "";
   
   roFilteredList = calculatedROs.filter(ro => {
     // Search match
@@ -1617,11 +1811,12 @@ function filterROExplorer() {
       ro.mst_name.toLowerCase().includes(searchQuery);
       
     const statusMatch = statusFilter === "" || ro.status === statusFilter;
+    const nlMatch = nlFilter === "" || (ro.new_logic_status || ro.ro_online_status || ro.status) === nlFilter;
     const nanoMatch = nanoFilter === "" || ro.nano_status === nanoFilter;
     const areaMatch = areaFilter === "" || ro.sales_area === areaFilter;
     const techMatch = techFilter === "" || ro.iot_status === techFilter;
     
-    return searchMatch && statusMatch && nanoMatch && areaMatch && techMatch;
+    return searchMatch && statusMatch && nlMatch && nanoMatch && areaMatch && techMatch;
   });
   
   sortROs();
@@ -1633,8 +1828,8 @@ function sortROs() {
   const asc = roSortAsc;
   
   roFilteredList.sort((a, b) => {
-    let valA = a[key];
-    let valB = b[key];
+    let valA = key === 'new_logic_status' ? (a.new_logic_status || a.ro_online_status || a.status || '') : a[key];
+    let valB = key === 'new_logic_status' ? (b.new_logic_status || b.ro_online_status || b.status || '') : b[key];
     
     // Numeric conversions
     if (typeof valA === 'string' && !isNaN(valA) && valA !== "") valA = parseFloat(valA);
@@ -1657,7 +1852,7 @@ function renderROExplorerPage() {
   const pageData = roFilteredList.slice(startIdx, endIdx);
   
   if (total === 0) {
-    tbody.innerHTML = `<tr><td colspan="18" style="text-align: center; padding: 2rem;">No matching outlets found.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="19" style="text-align: center; padding: 2rem;">No matching outlets found.</td></tr>`;
     document.getElementById('ro-pagination-info').textContent = "Showing 0 to 0 of 0 entries";
     renderPaginationButtons('ro-pagination-btns', 0, 1, 1, (page) => {});
     return;
@@ -1669,6 +1864,11 @@ function renderROExplorerPage() {
     let statusClass = "badge-offline";
     if (ro.status === "Fully Online") statusClass = "badge-online";
     else if (ro.status === "Partially Online") statusClass = "badge-partial";
+    
+    const nlStatus = ro.new_logic_status || ro.ro_online_status || ro.status;
+    let nlClass = "badge-offline";
+    if (nlStatus === "Fully Online") nlClass = "badge-online";
+    else if (nlStatus === "Partially Online" || nlStatus === "Partial") nlClass = "badge-partial";
     
     tr.innerHTML = `
       <td>${ro.roid}</td>
@@ -1686,9 +1886,11 @@ function renderROExplorerPage() {
       <td>${ro.tot_onl.toFixed(1)}</td>
       <td style="font-weight: 500;">${(ro.uptime * 100).toFixed(1)}%</td>
       <td><span class="badge ${statusClass}">${ro.status}</span></td>
+      
       <td>${ro.off_mpd.toFixed(0)}</td>
       <td>${ro.off_tnk.toFixed(0)}</td>
       <td title="${ro.condition}">${ro.nano_status}</td>
+      <td><span class="badge ${nlClass}">${nlStatus}</span></td>
     `;
     tbody.appendChild(tr);
   });
@@ -1775,8 +1977,8 @@ function sortMappings() {
   const asc = mapSortAsc;
   
   mapFilteredList.sort((a, b) => {
-    let valA = a[key];
-    let valB = b[key];
+    let valA = key === 'new_logic_status' ? (a.new_logic_status || a.ro_online_status || a.status || '') : a[key];
+    let valB = key === 'new_logic_status' ? (b.new_logic_status || b.ro_online_status || b.status || '') : b[key];
     
     if (key === 'roid') {
       valA = parseInt(valA);
@@ -1903,7 +2105,7 @@ function exportToCSV(dataList, filename, isSalesArea = false, isRODetails = fals
   if (isSalesArea) {
     headers = ["Sales Area", "Total ROs", "Fully Online", "Partially Online", "Offline", "Onbd MPD", "Online MPD", "MPD Uptime %", "Onbd Tank", "Online Tank", "Tank Uptime %", "AVG Uptime %", "Offline MPDs", "Offline Tanks"];
   } else if (isRODetails) {
-    headers = ["ROID", "Retail Outlet", "Sales Area", "TE Name", "RA Vendor", "MST Name", "Auto RSP", "Onbd MPD", "Online MPD", "Onbd Tank", "Online Tank", "Total Onbd", "Total Online", "Uptime %", "Status", "Offline MPD", "Offline Tank", "NANO Status"];
+    headers = ["ROID", "Retail Outlet", "Sales Area", "TE Name", "RA Vendor", "MST Name", "Auto RSP", "Onbd MPD", "Online MPD", "Onbd Tank", "Online Tank", "Total Onbd", "Total Online", "Uptime %", "Equipment Status", "Offline MPD", "Offline Tank", "NANO Status", "2 Slot Status"];
   } else {
     headers = ["Name", "Total ROs", "Fully Online", "Partially Online", "Offline", "Onbd MPD", "Online MPD", "MPD Uptime %", "Onbd Tank", "Online Tank", "Tank Uptime %", "AVG Uptime %", "Offline MPDs", "Offline Tanks"];
   }
@@ -1929,9 +2131,11 @@ function exportToCSV(dataList, filename, isSalesArea = false, isRODetails = fals
         row.tot_onl,
         (row.uptime * 100).toFixed(2) + "%",
         row.status,
+
         row.off_mpd,
         row.off_tnk,
-        row.nano_status
+        row.nano_status,
+        row.new_logic_status || row.ro_online_status || row.status
       ];
     } else {
       rowVals = [
@@ -2263,6 +2467,297 @@ window.addEventListener('click', (e) => {
 // ==========================================
 // Day Monitoring Panel Logic
 // ==========================================
+
+// ==========================================
+// Shared Day Monitoring Cloud Sync
+// ==========================================
+window.dayMonitoringShared = {};
+window.dayMonitoringSyncState = { loading: false, lastSync: null };
+
+function getDayMonitoringApiConfig() {
+  const cfg = window.DAY_MONITORING_CONFIG || {};
+  return {
+    apiUrl: (localStorage.getItem('day_monitoring_api_url') || cfg.apiUrl || '').trim(),
+    apiKey: localStorage.getItem('day_monitoring_api_key') || cfg.apiKey || ''
+  };
+}
+
+function getDayMonitoringDate() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+}
+
+function getCurrentDashboardUserName() {
+  return (window.currentUser && window.currentUser.username) ||
+         localStorage.getItem('bpcl_dashboard_user_name') || 'Unknown User';
+}
+
+function getSharedDayData(roid) {
+  const key = String(roid);
+  return window.dayMonitoringShared[key] || {};
+}
+
+function setSharedDayData(roid, data) {
+  window.dayMonitoringShared[String(roid)] = Object.assign({}, data);
+}
+window.getSharedDayData = getSharedDayData;
+window.setSharedDayData = setSharedDayData;
+window.dayMonitoringApiRequest = dayMonitoringApiRequest;
+if (false) {
+}
+
+async function dayMonitoringApiRequest(method, payload) {
+  const cfg = getDayMonitoringApiConfig();
+  if (!cfg.apiUrl || cfg.apiUrl === 'CHANGE_ME') {
+    throw new Error('Day Monitoring Google Apps Script URL is not configured.');
+  }
+
+  let url = cfg.apiUrl;
+  if (method === 'GET') {
+    const params = new URLSearchParams({
+      action: 'get',
+      date: getDayMonitoringDate(),
+      territory: 'Belgaum',
+      apiKey: cfg.apiKey
+    });
+    const response = await fetch(`${url}?${params.toString()}`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Cloud read failed (${response.status})`);
+    return response.json();
+  }
+
+  // URLSearchParams keeps the request "simple" so Apps Script can receive it
+  // without a CORS preflight.
+  const form = new URLSearchParams();
+  form.set('action', payload.action || 'saveRows');
+  form.set('apiKey', cfg.apiKey);
+  form.set('payload', JSON.stringify(payload));
+
+  const response = await fetch(url, {
+    method: 'POST',
+    body: form,
+    cache: 'no-store'
+  });
+  if (!response.ok) throw new Error(`Cloud save failed (${response.status})`);
+  return response.json();
+}
+
+window.loadSharedDayMonitoring = async function(silent = true) {
+  if (window.dayMonitoringSyncState.loading) return;
+  window.dayMonitoringSyncState.loading = true;
+
+  try {
+    const result = await dayMonitoringApiRequest('GET');
+    if (result && result.success && Array.isArray(result.rows)) {
+      window.dayMonitoringShared = {};
+      result.rows.forEach(row => {
+        if (row.roid !== undefined && row.roid !== null) {
+          setSharedDayData(row.roid, row);
+        }
+      });
+      window.dayMonitoringSyncState.lastSync = new Date();
+      const cloudStatus = document.getElementById('day-monitoring-cloud-status');
+      if (cloudStatus) {
+        cloudStatus.textContent = `Shared Day Monitoring: synced ${window.dayMonitoringSyncState.lastSync.toLocaleTimeString()}.`;
+      }
+      if (typeof renderDayMonitoringTable === 'function') renderDayMonitoringTable();
+      if (typeof window.renderOutletsStatusTable === 'function') window.renderOutletsStatusTable();
+      if (typeof window.startAutomaticDayMonitoringSync === 'function') window.startAutomaticDayMonitoringSync();
+    }
+  } catch (error) {
+    console.warn('Shared Day Monitoring load failed; local values will be used.', error);
+    if (!silent) showToast(error.message || 'Could not load shared Day Monitoring data.', 'error');
+  } finally {
+    window.dayMonitoringSyncState.loading = false;
+  }
+};
+
+window.saveSharedDayMonitoringRow = async function(ro, responsibility, remark, targetDate = '', showMessage = false, bromaNo = '', entryDate = '') {
+  const row = {
+    date: entryDate || getDayMonitoringDate(),
+    roid: String(ro.roid),
+    outletName: ro.outlet_name || '',
+    salesArea: ro.sales_area || '',
+    vendor: ro.vendor || '',
+    status: ro.status || '',
+    iot: ro.iot_status || '',
+    uptime: Number(ro.uptime || 0),
+    offlineMpd: Number(ro.off_mpd || 0),
+    offlineTank: Number(ro.off_tnk || 0),
+    responsibility: responsibility || '',
+    remark: remark || '',
+    targetDate: targetDate || '',
+    bromaNo: bromaNo || '',
+    updatedBy: getCurrentDashboardUserName(),
+    updatedAt: new Date().toISOString(),
+    territory: 'Belgaum'
+  };
+
+  // Update UI immediately; cloud sync happens in the background.
+  setSharedDayData(row.roid, row);
+
+  try {
+    const result = await dayMonitoringApiRequest('POST', {
+      action: 'saveRows',
+      rows: [row]
+    });
+    if (!result || !result.success) throw new Error((result && result.message) || 'Cloud save failed');
+    if (showMessage) showToast('Day Monitoring update saved for all users.', 'success');
+  } catch (error) {
+    console.error('Shared Day Monitoring save failed:', error);
+    // Keep a local fallback so the entry is not lost if the network is down.
+    localStorage.setItem('day_remarks_' + ro.roid, JSON.stringify({
+      responsibility: responsibility || '',
+      remark: remark || '',
+      targetDate: targetDate || '',
+      pendingCloudSync: true,
+      updatedAt: row.updatedAt,
+      updatedBy: row.updatedBy
+    }));
+    showToast('Saved locally. Cloud sync failed; please retry when online.', 'error');
+  }
+};
+
+let dayMonitoringAutoSyncTimer = null;
+let dayMonitoringAutoSyncInProgress = false;
+
+/**
+ * Automatically pushes the current Day Monitoring rows to the shared backend.
+ * This keeps the server-side copy current so the nightly Apps Script trigger
+ * can archive it even when nobody clicks the Drive button.
+ */
+window.autoSyncDayMonitoringToCloud = async function(silent = true) {
+  if (dayMonitoringAutoSyncInProgress || !Array.isArray(calculatedROs) || !calculatedROs.length) return;
+  
+  // Guard against overwriting cloud data with empty/stale local values on startup
+  if (!window.dayMonitoringSyncState.lastSync) {
+    console.log("Skipping auto-push sync: Cloud data not yet loaded.");
+    return;
+  }
+
+  const cfg = getDayMonitoringApiConfig();
+  if (!cfg.apiUrl || !cfg.apiKey || cfg.apiKey === 'CHANGE_THIS_KEY') return;
+
+  const list = calculatedROs.filter(ro => ro.status === 'Partially Online' || ro.status === 'Offline');
+  if (!list.length) return;
+
+  dayMonitoringAutoSyncInProgress = true;
+  try {
+    const rows = list.map(ro => {
+      const shared = getSharedDayData(ro.roid);
+      const local = JSON.parse(localStorage.getItem('day_remarks_' + ro.roid) || '{}');
+      return {
+        date: getDayMonitoringDate(),
+        roid: String(ro.roid),
+        outletName: ro.outlet_name || '',
+        salesArea: ro.sales_area || '',
+        vendor: ro.vendor || '',
+        status: ro.status || '',
+        iot: ro.iot_status || '',
+        uptime: Number(ro.uptime || 0),
+        offlineMpd: Number(ro.off_mpd || 0),
+        offlineTank: Number(ro.off_tnk || 0),
+        responsibility: shared.responsibility ?? local.responsibility ?? '',
+        remark: shared.remark ?? local.remark ?? '',
+        targetDate: shared.targetDate ?? local.targetDate ?? '',
+        updatedBy: shared.updatedBy || getCurrentDashboardUserName(),
+        updatedAt: shared.updatedAt || new Date().toISOString(),
+        territory: 'Belgaum'
+      };
+    });
+
+    const result = await dayMonitoringApiRequest('POST', { action: 'saveRows', rows });
+    if (!result || !result.success) throw new Error((result && result.message) || 'Automatic cloud sync failed');
+
+    const cloudStatus = document.getElementById('day-monitoring-cloud-status');
+    if (cloudStatus) {
+      cloudStatus.textContent = `Shared Day Monitoring: auto-synced ${new Date().toLocaleTimeString()}. Nightly Drive backup is enabled.`;
+    }
+  } catch (error) {
+    console.warn('Automatic Day Monitoring cloud sync failed:', error);
+    if (!silent) showToast(error.message || 'Automatic cloud sync failed.', 'error');
+  } finally {
+    dayMonitoringAutoSyncInProgress = false;
+  }
+};
+
+window.startAutomaticDayMonitoringSync = function() {
+  if (dayMonitoringAutoSyncTimer) clearInterval(dayMonitoringAutoSyncTimer);
+  // First sync shortly after the current data is available, then every 10 minutes.
+  setTimeout(() => window.autoSyncDayMonitoringToCloud(true), 3000);
+  dayMonitoringAutoSyncTimer = setInterval(() => window.autoSyncDayMonitoringToCloud(true), 10 * 60 * 1000);
+
+  // Poll for updates from other users every 30 seconds
+  if (window.dayMonitoringPollTimer) clearInterval(window.dayMonitoringPollTimer);
+  window.dayMonitoringPollTimer = setInterval(async () => {
+    // Only pull if the user is not actively typing or selecting inside the table
+    const activeEl = document.activeElement;
+    const isEditing = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'SELECT') && (activeEl.closest('#day-monitoring-tbody') || activeEl.closest('#outlets-status-tbody'));
+    if (!isEditing) {
+      try {
+        await window.loadSharedDayMonitoring(true);
+      } catch (e) {
+        console.warn("Background fetch of shared day monitoring failed:", e);
+      }
+    }
+  }, 30 * 1000);
+};
+
+window.saveDailyDayMonitoringToDrive = async function() {
+  const list = calculatedROs.filter(ro => ro.status === "Partially Online" || ro.status === "Offline");
+  if (!list.length) {
+    showToast('No offline or partially online sites to save.', 'error');
+    return;
+  }
+
+  const rows = list.map(ro => {
+    const shared = getSharedDayData(ro.roid);
+    const local = JSON.parse(localStorage.getItem('day_remarks_' + ro.roid) || '{}');
+    return {
+      date: getDayMonitoringDate(),
+      roid: String(ro.roid),
+      outletName: ro.outlet_name || '',
+      salesArea: ro.sales_area || '',
+      vendor: ro.vendor || '',
+      status: ro.status || '',
+      iot: ro.iot_status || '',
+      uptime: Number(ro.uptime || 0),
+      offlineMpd: Number(ro.off_mpd || 0),
+      offlineTank: Number(ro.off_tnk || 0),
+      responsibility: shared.responsibility ?? local.responsibility ?? '',
+      remark: shared.remark ?? local.remark ?? '',
+      targetDate: shared.targetDate ?? local.targetDate ?? '',
+      updatedBy: shared.updatedBy || getCurrentDashboardUserName(),
+      updatedAt: shared.updatedAt || new Date().toISOString(),
+      territory: 'Belgaum'
+    };
+  });
+
+  const btn = document.getElementById('save-day-monitoring-drive-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving...'; }
+
+  try {
+    const result = await dayMonitoringApiRequest('POST', {
+      action: 'saveDaily',
+      date: getDayMonitoringDate(),
+      territory: 'Belgaum',
+      rows
+    });
+    if (!result || !result.success) throw new Error((result && result.message) || 'Daily archive failed');
+
+    if (result.fileUrl) {
+      showToast(`Daily data saved to Google Drive: ${result.fileName || 'archive file'}`, 'success');
+      window.open(result.fileUrl, '_blank');
+    } else {
+      showToast('Daily monitoring data saved to Google Drive.', 'success');
+    }
+  } catch (error) {
+    console.error('Daily Google Drive archive failed:', error);
+    showToast(error.message || 'Could not save daily data to Google Drive.', 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = 'Save Daily Data to Drive'; }
+  }
+};
+
 const COMPLAINT_REMARKS_DB = {
   '': ['Onboarding pending','Reconfiguration/Onboarding pending','Calibration pending',
     'MPD Technical issue','Old MPD removed/WIP Deboarding','Slave/Master Slave issue',
@@ -2305,8 +2800,9 @@ window.renderDayMonitoringTable = function() {
     if (filterStatus !== "" && ro.status !== filterStatus) return false;
     if (filterTech !== "" && ro.iot_status !== filterTech) return false;
     if (filterResp !== "") {
-      const savedData = JSON.parse(localStorage.getItem('day_remarks_' + ro.roid) || '{}');
-      const resp = savedData.responsibility || '';
+      const sharedData = getSharedDayData(ro.roid);
+      const localData = JSON.parse(localStorage.getItem('day_remarks_' + ro.roid) || '{}');
+      const resp = sharedData.responsibility ?? localData.responsibility ?? '';
       if (resp !== filterResp) return false;
     }
     
@@ -2323,6 +2819,8 @@ window.renderDayMonitoringTable = function() {
     return true;
   });
 
+
+  window.dayMonitoringFilteredList = list;
   if (list.length === 0) {
     tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 2rem;">No matching offline or partially online outlets.</td></tr>`;
     return;
@@ -2331,10 +2829,12 @@ window.renderDayMonitoringTable = function() {
   list.forEach(ro => {
     const tr = document.createElement('tr');
     
-    // Get saved values from localStorage
-    const savedData = JSON.parse(localStorage.getItem('day_remarks_' + ro.roid) || '{}');
-    const savedResp = savedData.responsibility || '';
-    const savedRemark = savedData.remark || '';
+    // Shared cloud values are preferred; localStorage remains an offline fallback.
+    const sharedData = getSharedDayData(ro.roid);
+    const localData = JSON.parse(localStorage.getItem('day_remarks_' + ro.roid) || '{}');
+    const savedResp = sharedData.responsibility ?? localData.responsibility ?? '';
+    const savedRemark = sharedData.remark ?? localData.remark ?? '';
+    const savedTargetDate = sharedData.targetDate ?? localData.targetDate ?? '';
 
     // Create Row Cells
     const tdRoid = document.createElement('td');
@@ -2383,49 +2883,64 @@ window.renderDayMonitoringTable = function() {
     tdResp.appendChild(selectResp);
     tr.appendChild(tdResp);
 
-    // Complaint Remarks Select
+    // Complaint Remarks Simple Text Input
     const tdRemark = document.createElement('td');
-    const selectRemark = document.createElement('select');
-    selectRemark.className = 'table-select';
-    
-    // Function to populate remarks based on responsibility
-    const populateRemarks = (respVal, selectedRemark) => {
-      selectRemark.innerHTML = '';
-      const remarks = COMPLAINT_REMARKS_DB[respVal] || COMPLAINT_REMARKS_DB[''];
-      remarks.forEach(r => {
-        const opt = document.createElement('option');
-        opt.value = r;
-        opt.textContent = r;
-        if (r === selectedRemark) {
-          opt.selected = true;
-        }
-        selectRemark.appendChild(opt);
-      });
-    };
-
-    populateRemarks(savedResp, savedRemark);
-    tdRemark.appendChild(selectRemark);
+    const inputRemark = document.createElement('input');
+    inputRemark.type = 'text';
+    inputRemark.className = 'table-input';
+    inputRemark.style.width = '180px';
+    inputRemark.value = savedRemark;
+    inputRemark.placeholder = 'Enter remarks...';
+    tdRemark.appendChild(inputRemark);
     tr.appendChild(tdRemark);
+
+    // Target Date Input
+    const tdTargetDate = document.createElement('td');
+    const inputTargetDate = document.createElement('input');
+    inputTargetDate.type = 'date';
+    inputTargetDate.className = 'table-input';
+    inputTargetDate.style.width = '130px';
+    inputTargetDate.value = savedTargetDate;
+    tdTargetDate.appendChild(inputTargetDate);
+    tr.appendChild(tdTargetDate);
 
     // Event listener for Responsibility
     selectResp.addEventListener('change', (e) => {
       const newResp = e.target.value;
-      populateRemarks(newResp, '');
-      const newRemark = selectRemark.value;
+      const currentRemark = inputRemark.value;
+      const targetDt = inputTargetDate.value;
       localStorage.setItem('day_remarks_' + ro.roid, JSON.stringify({
         responsibility: newResp,
-        remark: newRemark
+        remark: currentRemark,
+        targetDate: targetDt
       }));
+      saveSharedDayMonitoringRow(ro, newResp, currentRemark, targetDt, true);
     });
 
-    // Event listener for Complaint Remarks
-    selectRemark.addEventListener('change', (e) => {
+    // Event listener for Remarks text input
+    inputRemark.addEventListener('change', (e) => {
       const newRemark = e.target.value;
       const currentResp = selectResp.value;
+      const targetDt = inputTargetDate.value;
       localStorage.setItem('day_remarks_' + ro.roid, JSON.stringify({
         responsibility: currentResp,
-        remark: newRemark
+        remark: newRemark,
+        targetDate: targetDt
       }));
+      saveSharedDayMonitoringRow(ro, currentResp, newRemark, targetDt, true);
+    });
+
+    // Event listener for Target Date
+    inputTargetDate.addEventListener('change', (e) => {
+      const targetDt = e.target.value;
+      const currentResp = selectResp.value;
+      const currentRemark = inputRemark.value;
+      localStorage.setItem('day_remarks_' + ro.roid, JSON.stringify({
+        responsibility: currentResp,
+        remark: currentRemark,
+        targetDate: targetDt
+      }));
+      saveSharedDayMonitoringRow(ro, currentResp, currentRemark, targetDt, true);
     });
 
     const tdMpd = document.createElement('td');
@@ -2441,20 +2956,23 @@ window.renderDayMonitoringTable = function() {
 };
 
 window.exportDayMonitoringData = function() {
-  const list = calculatedROs.filter(ro => ro.status === "Partially Online" || ro.status === "Offline");
+  const list = window.dayMonitoringFilteredList !== undefined ? window.dayMonitoringFilteredList : calculatedROs.filter(ro => ro.status === "Partially Online" || ro.status === "Offline");
+
   if (list.length === 0) {
     showToast("No data to export", "error");
     return;
   }
 
   let csvContent = "data:text/csv;charset=utf-8,";
-  const headers = ["ROID", "Retail Outlet", "Sales Area", "Vendor", "Uptime %", "Status", "IOT/WFCC", "Responsibility", "Complaint Remarks", "Offline MPDs", "Offline Tanks"];
+  const headers = ["ROID", "Retail Outlet", "Sales Area", "Vendor", "Uptime %", "Status", "IOT/WFCC", "Responsibility", "Complaint Remarks", "Target Date", "Offline MPDs", "Offline Tanks"];
   csvContent += headers.map(h => `"${h.replace(/"/g, '""')}"`).join(",") + "\n";
 
   list.forEach(ro => {
-    const savedData = JSON.parse(localStorage.getItem('day_remarks_' + ro.roid) || '{}');
-    const resp = savedData.responsibility || '';
-    const remark = savedData.remark || '';
+    const sharedData = getSharedDayData(ro.roid);
+    const localData = JSON.parse(localStorage.getItem('day_remarks_' + ro.roid) || '{}');
+    const resp = sharedData.responsibility ?? localData.responsibility ?? '';
+    const remark = sharedData.remark ?? localData.remark ?? '';
+    const targetDate = sharedData.targetDate ?? localData.targetDate ?? '';
     
     const rowVals = [
       ro.roid,
@@ -2466,6 +2984,7 @@ window.exportDayMonitoringData = function() {
       ro.iot_status,
       resp,
       remark,
+      targetDate,
       ro.off_mpd.toFixed(0),
       ro.off_tnk.toFixed(0)
     ];
@@ -3032,7 +3551,7 @@ window.renderMonitoringComparison = async function() {
   tbody.innerHTML = '';
   
   if (!window.calculatedROs || window.calculatedROs.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem;">No current active data loaded. Please upload a spreadsheet or load sample data.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 2rem;">No current active data loaded. Please upload a spreadsheet or load sample data.</td></tr>`;
     return;
   }
   
@@ -3049,7 +3568,7 @@ window.renderMonitoringComparison = async function() {
   }
   
   if (records.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem;">No historical uploads in database to compare against. Please upload files to build history.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 2rem;">No historical uploads in database to compare against. Please upload files to build history.</td></tr>`;
     return;
   }
   
@@ -3076,7 +3595,8 @@ window.renderMonitoringComparison = async function() {
       const activeRecord = sortedHistory[0];
       const activeDate = new Date(activeRecord.timestamp);
       const yesterday = new Date(activeDate.getTime() - 24 * 60 * 60 * 1000);
-      const yesterdayStr = yesterday.toISOString().substring(0, 10);
+      // Local date (toISOString would give the UTC date and pick the wrong day after midnight IST)
+      const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
       
       const yesterdayRecs = sortedHistory.filter(r => r.date === yesterdayStr);
       let autoRec = null;
@@ -3149,7 +3669,7 @@ window.renderMonitoringComparison = async function() {
   const baselineId = parseInt(selectEl.value);
   const baselineRecord = records.find(r => r.id === baselineId);
   if (!baselineRecord) {
-    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 2rem;">Selected baseline record could not be found.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 2rem;">Selected baseline record could not be found.</td></tr>`;
     return;
   }
   
@@ -3361,7 +3881,7 @@ window.renderMonitoringComparison = async function() {
   });
   
   if (compareList.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; padding: 2rem;">No matching status changes found.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; padding: 2rem;">No matching status changes found.</td></tr>`;
     return;
   }
   
@@ -3401,6 +3921,7 @@ window.renderMonitoringComparison = async function() {
       <td style="text-align: center;">${changeHtml}</td>
       <td style="text-align: center; font-weight: 700; color: ${ro.off_mpd > 0 ? 'var(--accent-red)' : 'var(--text-muted)'};">${offMpdVal}</td>
       <td style="text-align: center; font-weight: 700; color: ${ro.off_tnk > 0 ? 'var(--accent-red)' : 'var(--text-muted)'};">${offTnkVal}</td>
+      <td style="text-align: center;">${window.WhatsAppAlerts ? window.WhatsAppAlerts.cellHtml(ro, baseStatus) : ''}</td>
     `;
     tbody.appendChild(tr);
   });
@@ -3606,6 +4127,9 @@ window.syncGoogleSheet = async function(silent = false) {
     // Recalculate metrics
     recalculateAndRefresh();
     
+    // Load today's shared Dependency/Remark values after the latest status data is ready.
+    await window.loadSharedDayMonitoring(true);
+
     // Construct current timestamp
     const now = new Date();
     const dateStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
@@ -3661,3 +4185,48 @@ window.syncGoogleSheet = async function(silent = false) {
 };
 
 
+
+
+
+// ==========================================================================
+// BPCL Exact Mockup UI Helpers: Live Clock, Center Text, Dropdowns
+// ==========================================================================
+function initLiveHeaderClock() {
+  function updateTime() {
+    const now = new Date();
+    const dateEl = document.getElementById('header-live-date');
+    const clockEl = document.getElementById('header-live-clock');
+    
+    if (dateEl) {
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      dateEl.textContent = now.toLocaleDateString('en-US', options);
+    }
+    if (clockEl) {
+      clockEl.textContent = now.toLocaleTimeString('en-US', { hour12: true });
+    }
+  }
+  updateTime();
+  setInterval(updateTime, 1000);
+}
+
+window.toggleUserDropdown = function() {
+  const menu = document.getElementById('user-dropdown-menu');
+  if (menu) {
+    menu.style.display = (menu.style.display === 'none' || !menu.style.display) ? 'flex' : 'none';
+  }
+};
+
+document.addEventListener('click', function(e) {
+  const container = document.getElementById('user-profile-widget');
+  const menu = document.getElementById('user-dropdown-menu');
+  if (container && menu && !container.contains(e.target)) {
+    menu.style.display = 'none';
+  }
+});
+
+// Initialize on DOM load
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initLiveHeaderClock);
+} else {
+  initLiveHeaderClock();
+}

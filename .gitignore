@@ -8,3 +8,6 @@ Thumbs.db
 *.pyc
 __pycache__/
 *.log
+
+# Ignore credentials and local secrets
+sync_config.json
