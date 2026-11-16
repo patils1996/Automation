@@ -484,7 +484,7 @@ function recalculateAndRefresh() {
     document.getElementById('evcs-overview-sec').style.display = 'block';
     
     // Change app title
-    document.querySelector('header h1').innerHTML = `BPCL EVCS Live Status <span>Dashboard</span>`;
+    document.querySelector('header h1').innerHTML = `EVCS Live <span class="highlight-yellow">Status</span>`;
     
     processEvcsCalculations();
     updateEvcsDashboardKPIs();
@@ -493,8 +493,11 @@ function recalculateAndRefresh() {
     document.getElementById('evcs-overview-sec').style.display = 'none';
     document.getElementById('automation-overview-sec').style.display = 'block';
     
-    // Restore app title
-    document.querySelector('header h1').innerHTML = `BPCL Belgaum Territory <span>Dashboard</span>`;
+    // Restore app title for the active tab
+    if (window.uiSetPageTitle) {
+      const activeNav = document.querySelector('.sidebar-menu .menu-item.active');
+      window.uiSetPageTitle(activeNav ? activeNav.dataset.tab : 'tab-overview', activeNav, { keepScroll: true });
+    }
     
     processCalculations(rawDataRows);
     updateDashboardKPIs();
@@ -1345,8 +1348,8 @@ let equipmentCompChartInstance = null;
 
 // Render Overview Charts
 function updateOverviewCharts() {
-  const textColor = '#475569';
-  const gridColor = '#e2e8f0';
+  const textColor = '#5b6b84';
+  const gridColor = '#eef1f6';
 
   // Custom inline plugin: draws % labels on bar charts
   const barDataLabels = {
@@ -1364,7 +1367,7 @@ function updateOverviewCharts() {
           const label = parseFloat(value).toFixed(1) + '%';
 
           ctx.save();
-          ctx.font = 'bold 9px Inter, system-ui, sans-serif';
+          ctx.font = '600 10.5px Inter, system-ui, sans-serif';
 
           if (chart.options.indexAxis === 'y') {
             // Horizontal bar → draw label to the right of bar end
@@ -1398,8 +1401,8 @@ function updateOverviewCharts() {
       const centerY = (top + bottom) / 2;
 
       const total = overallMetrics.totalROs || 392;
-      ctx.font = 'bold 20px Inter, system-ui, sans-serif';
-      ctx.fillStyle = '#00204a';
+      ctx.font = '800 24px Inter, system-ui, sans-serif';
+      ctx.fillStyle = '#0d1b2e';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(total, centerX, centerY - 8);
@@ -1426,7 +1429,7 @@ function updateOverviewCharts() {
         labels: ['Online', 'Partial', 'Offline'],
         datasets: [{
           data: [overallMetrics.fullyOnline, overallMetrics.partiallyOnline, overallMetrics.offline],
-          backgroundColor: ['#16a34a', '#eab308', '#dc2626'],
+          backgroundColor: ['#138a4a', '#e9a100', '#c8322b'],
           borderWidth: 2,
           borderColor: '#ffffff'
         }]
@@ -1437,7 +1440,7 @@ function updateOverviewCharts() {
         plugins: {
           legend: { display: false }
         },
-        cutout: '68%'
+        cutout: '72%', spacing: 2, borderRadius: 4
       }
     });
 
@@ -1480,9 +1483,9 @@ function updateOverviewCharts() {
           {
             label: 'Uptime %',
             data: salesAreaUptimeVals,
-            backgroundColor: '#7c3aed', // Purple bars matching photo
+            backgroundColor: '#1a6bc8',
             borderRadius: 4,
-            barThickness: 14
+            barThickness: 18
           }
         ]
       },
@@ -1500,13 +1503,13 @@ function updateOverviewCharts() {
             grid: { color: gridColor },
             ticks: {
               color: textColor,
-              font: { family: 'Inter', size: 9 },
+              font: { family: 'Inter', size: 11 },
               callback: value => value <= 100 ? value + '%' : ''
             }
           },
           y: {
             grid: { display: false },
-            ticks: { color: textColor, font: { family: 'Inter', size: 9, weight: '600' } }
+            ticks: { color: textColor, font: { family: 'Inter', size: 11, weight: '600' } }
           }
         }
       }
@@ -1534,14 +1537,14 @@ function updateOverviewCharts() {
           {
             label: 'MPD Uptime',
             data: mpdUptimeVals,
-            backgroundColor: '#2563eb', // Royal Blue
+            backgroundColor: '#003f87',
             borderRadius: 3,
             maxBarThickness: 14
           },
           {
             label: 'Tank Uptime',
             data: tankUptimeVals,
-            backgroundColor: '#0d9488', // Teal
+            backgroundColor: '#0f8b82',
             borderRadius: 3,
             maxBarThickness: 14
           }
@@ -1554,13 +1557,13 @@ function updateOverviewCharts() {
           legend: {
             display: true,
             position: 'top',
-            labels: { color: textColor, font: { family: 'Inter', size: 9, weight: '600' }, boxWidth: 12 }
+            labels: { color: textColor, font: { family: 'Inter', size: 11, weight: '600' }, boxWidth: 12 }
           }
         },
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: textColor, font: { family: 'Inter', size: 9, weight: '600' } }
+            ticks: { color: textColor, font: { family: 'Inter', size: 11, weight: '600' } }
           },
           y: {
             min: 0,
@@ -1568,7 +1571,7 @@ function updateOverviewCharts() {
             grid: { color: gridColor },
             ticks: {
               color: textColor,
-              font: { family: 'Inter', size: 9 },
+              font: { family: 'Inter', size: 11 },
               callback: value => value <= 100 ? value + '%' : ''
             }
           }
@@ -1596,9 +1599,9 @@ function updateOverviewCharts() {
         datasets: [{
           label: 'Uptime %',
           data: eoVals,
-          backgroundColor: '#7c3aed', // Purple bars matching photo
+          backgroundColor: '#1a6bc8',
           borderRadius: 4,
-          barThickness: 14
+          barThickness: 18
         }]
       },
       options: {
@@ -1613,13 +1616,13 @@ function updateOverviewCharts() {
             grid: { color: gridColor },
             ticks: {
               color: textColor,
-              font: { family: 'Inter', size: 9 },
+              font: { family: 'Inter', size: 11 },
               callback: value => value <= 100 ? value + '%' : ''
             }
           },
           y: {
             grid: { display: false },
-            ticks: { color: textColor, font: { family: 'Inter', size: 9, weight: '600' } }
+            ticks: { color: textColor, font: { family: 'Inter', size: 11, weight: '600' } }
           }
         }
       }
@@ -1646,7 +1649,7 @@ function updateOverviewCharts() {
         datasets: [{
           label: 'Uptime %',
           data: soVals,
-          backgroundColor: '#7c3aed',
+          backgroundColor: '#1a6bc8',
           borderRadius: 4,
           barThickness: 10
         }]
@@ -1663,13 +1666,13 @@ function updateOverviewCharts() {
             grid: { color: gridColor },
             ticks: {
               color: textColor,
-              font: { family: 'Inter', size: 9 },
+              font: { family: 'Inter', size: 11 },
               callback: value => value <= 100 ? value + '%' : ''
             }
           },
           y: {
             grid: { display: false },
-            ticks: { color: textColor, font: { family: 'Inter', size: 8, weight: '600' } }
+            ticks: { color: textColor, font: { family: 'Inter', size: 10, weight: '600' } }
           }
         }
       }
@@ -3114,8 +3117,8 @@ function updateEvcsDashboardKPIs() {
 }
 
 function updateEvcsOverviewCharts() {
-  const greenColor = '#10b981';
-  const redColor = '#ef4444';
+  const greenColor = '#138a4a';
+  const redColor = '#c8322b';
   
   // Custom plugins for Neumorphic EVCS layout
   const evcsBarBackgroundPlugin = {
@@ -3534,7 +3537,6 @@ window.initLogin = function() {
     populateUsernamesForRole('admin');
     passwordInput.value = '';
     
-    document.querySelector('header h1').innerHTML = `BPCL Belgaum Territory <span>Dashboard</span>`;
     window.location.reload();
   });
 };

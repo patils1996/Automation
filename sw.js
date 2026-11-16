@@ -1,8 +1,10 @@
-const CACHE_NAME = 'bpcl-dashboard-v14';
+const CACHE_NAME = 'bpcl-dashboard-v15';
 const ASSETS = [
   './',
   './index.html',
   './styles.css',
+  './ui-refresh.css',
+  './ui-refresh.js',
   './app.js',
   './trend.js',
   './comparison.js',
@@ -15,11 +17,7 @@ const ASSETS = [
   './xlsx.full.min.js',
   './chart.umd.min.js',
   './bpcl_logo_card.png',
-  './bpcl_canopy_faded.png',
-  './sidebar_skyline.png',
-  './manifest.json',
-  './icon-192.png',
-  './icon-512.png'
+  './sidebar_skyline.png'
 ];
 
 self.addEventListener('install', (e) => {

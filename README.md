@@ -101,3 +101,14 @@ You can run `testDailyBackupNow()` manually from Apps Script to verify the Drive
 ## 💬 WhatsApp dealer alerts (Monitoring menu)
 
 Status drops vs yesterday ~10 PM trigger WhatsApp alerts to the dealer: Offline → check internet connection; MPD down → Turn ON all MPDs; ATG down → restart ATG; every alert → raise a complaint if a technical fault persists. Sending is automatic through the Apps Script backend (WhatsApp Cloud API) or one-click via WhatsApp. Setup: see `WHATSAPP_ALERTS_SETUP.md`.
+
+## 🎨 UI refresh (Nov 2026)
+
+The interface was refreshed without changing any data logic:
+
+* `ui-refresh.css` — design layer loaded after `styles.css` (tokens, cards, KPI tiles, tables with sticky headers, status pills, buttons, forms, modals, login, responsive rules). Delete the `<link>` to fall back to the old look.
+* `ui-refresh.js` — keeps the header title/breadcrumb in sync with the active tab, adds a tooltip + "data loaded" dot to the file meta, and sets Chart.js defaults (font, tooltip, legend).
+* Header rebuilt into a title row (breadcrumb, page title, actions, user menu) and a status row (territory, date/time, outlet count, loaded file).
+* Sidebar grouped into Overview / Monitoring / Summaries / Data; tabs are matched by `data-tab`, which also fixes Mappings Database never showing as active.
+* New split-panel sign-in screen.
+* Service worker cache bumped to `v15` so browsers pick up the new files; missing `manifest.json` / icon entries were removed from the pre-cache list (they made the whole offline cache fail).
