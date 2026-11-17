@@ -27,82 +27,97 @@
 <body>
 
   <!-- Sidebar (Left) - Attached Style UI -->
-  <aside class="sidebar enterprise-sidebar" id="app-sidebar" aria-label="Main navigation">
-    <div class="sidebar-brand-box">
-      <div class="sidebar-logo-card">
-        <img src="bpcl_emblem_official.png" alt="Bharat Petroleum - Energising Lives" class="bpcl-official-emblem">
-      </div>
-    </div>
-    
-    <div class="sidebar-menu">
-      <div class="menu-item" title="Overview" id="sidebar-overview-btn" onclick="switchSidebarTab('tab-overview')">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-        <span>Overview</span>
-      </div>
-
-      <div class="menu-item active" title="Retail Outlet" id="sidebar-ro-explorer-btn" onclick="switchSidebarTab('tab-ro-explorer')">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M9 8h1"></path><path d="M9 12h1"></path><path d="M9 16h1"></path><path d="M14 8h1"></path><path d="M14 12h1"></path><path d="M14 16h1"></path><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path></svg>
-        <span>Retail Outlet</span>
-      </div>
-
-      <div class="menu-item" title="DDD Browser" id="sidebar-day-monitoring-btn" onclick="switchSidebarTab('tab-day-monitoring')">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
-        <span>DDD Browser</span>
-      </div>
-
-      <div class="menu-item" title="Dashboard" id="sidebar-new-logic-btn" onclick="switchSidebarTab('tab-new-logic')">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+    <!-- Sidebar (Left) - Exact Match to Attached Screenshot -->
+  <aside class="sidebar bpcl-categorized-sidebar" id="app-sidebar" aria-label="Main navigation">
+    <div class="sidebar-menu-scroll">
+      
+      <!-- Category 1: OVERVIEW -->
+      <div class="sidebar-category-header">OVERVIEW</div>
+      <div class="menu-item active" id="sidebar-overview-btn" data-tab="tab-overview" onclick="switchSidebarTab('tab-overview')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
         <span>Dashboard</span>
       </div>
-
-      <div class="menu-item" title="RO Report" id="sidebar-monitoring-btn" onclick="switchSidebarTab('tab-monitoring')">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
-        <span>RO Report</span>
-      </div>
-
-      <div class="menu-item" title="Transactions" id="sidebar-comparison-btn" onclick="switchSidebarTab('tab-comparison')">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
-        <span>Transactions</span>
-      </div>
-
-      <div class="menu-item" title="Sales" id="sidebar-sales-area-btn" onclick="switchSidebarTab('tab-sales-area')">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-        <span>Sales</span>
-      </div>
-
-      <div class="menu-item" title="Shift Reports" id="sidebar-outlets-status-btn" onclick="switchSidebarTab('tab-outlets-status')">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-        <span>Shift Reports</span>
-      </div>
-
-      <div class="menu-item" title="Interlock" id="sidebar-performance-trend-btn" onclick="switchSidebarTab('tab-performance-trend')">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
-        <span>Interlock</span>
-      </div>
-
-      <div class="menu-item" title="Users" id="sidebar-eo-summary-btn" onclick="switchSidebarTab('tab-eo-summary')">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-        <span>Users</span>
-      </div>
-
-      <div class="menu-item" title="IOT Device Master" id="sidebar-so-summary-btn" onclick="switchSidebarTab('tab-so-summary')">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-        <span>IOT Device Master</span>
-      </div>
-
-      <div class="menu-item" title="Calibration Chart" id="sidebar-vendor-summary-btn" onclick="switchSidebarTab('tab-vendor-summary')">
+      <div class="menu-item" id="sidebar-new-logic-btn" data-tab="tab-new-logic" onclick="switchSidebarTab('tab-new-logic')">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-        <span>Calibration Chart</span>
+        <span>MIS Dashboard</span>
+      </div>
+      <div class="menu-item" id="sidebar-performance-trend-btn" data-tab="tab-performance-trend" onclick="switchSidebarTab('tab-performance-trend')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+        <span>Performance Trend</span>
       </div>
 
-      <div class="menu-item" title="Alerts" id="sidebar-alerts-btn" onclick="switchSidebarTab('tab-day-monitoring')">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-        <span>Alerts</span>
+      <!-- Category 2: MONITORING -->
+      <div class="sidebar-category-header">MONITORING</div>
+      <div class="menu-item" id="sidebar-day-monitoring-btn" data-tab="tab-day-monitoring" onclick="switchSidebarTab('tab-day-monitoring')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        <span>Day Monitoring</span>
+      </div>
+      <div class="menu-item" id="sidebar-monitoring-btn" data-tab="tab-monitoring" onclick="switchSidebarTab('tab-monitoring')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+        <span>Monitoring</span>
+      </div>
+      <div class="menu-item" id="sidebar-comparison-btn" data-tab="tab-comparison" onclick="switchSidebarTab('tab-comparison')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="5" x2="5" y2="19"></line><circle cx="6.5" cy="6.5" r="2.5"></circle><circle cx="17.5" cy="17.5" r="2.5"></circle></svg>
+        <span>Comparison</span>
+      </div>
+      <div class="menu-item" id="sidebar-outlets-status-btn" data-tab="tab-outlets-status" onclick="switchSidebarTab('tab-outlets-status')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        <span>Outlets Status</span>
       </div>
 
-      <div class="menu-item" title="Audit Logs" id="sidebar-mapping-btn" onclick="switchSidebarTab('tab-mapping')">
+      <!-- Category 3: SUMMARIES -->
+      <div class="sidebar-category-header">SUMMARIES</div>
+      <div class="menu-item" id="sidebar-sales-area-btn" data-tab="tab-sales-area" onclick="switchSidebarTab('tab-sales-area')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        <span>Sales Areas</span>
+      </div>
+      <div class="menu-item" id="sidebar-vendor-summary-btn" data-tab="tab-vendor-summary" onclick="switchSidebarTab('tab-vendor-summary')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+        <span>Vendor Summary</span>
+      </div>
+      <div class="menu-item" id="sidebar-eo-summary-btn" data-tab="tab-eo-summary" onclick="switchSidebarTab('tab-eo-summary')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span>TE Summary</span>
+      </div>
+      <div class="menu-item" id="sidebar-so-summary-btn" data-tab="tab-so-summary" onclick="switchSidebarTab('tab-so-summary')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span>SO Summary</span>
+      </div>
+
+      <!-- Category 4: DATA -->
+      <div class="sidebar-category-header">DATA</div>
+      <div class="menu-item" id="sidebar-ro-explorer-btn" data-tab="tab-ro-explorer" onclick="switchSidebarTab('tab-ro-explorer')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        <span>RO Explorer</span>
+      </div>
+      <div class="menu-item" id="sidebar-mapping-btn" data-tab="tab-mapping" onclick="switchSidebarTab('tab-mapping')">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
-        <span>Audit Logs</span>
+        <span>Mappings Database</span>
+      </div>
+
+    </div>
+
+    <!-- Bottom Action & Sync Section -->
+    <div class="sidebar-bottom-actions">
+      <button class="sidebar-action-btn sync-btn" id="btn-sync-sheet" title="Sync Google Sheet">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+        <span>Sync Sheet</span>
+      </button>
+      <div class="file-input-wrapper">
+        <button class="sidebar-action-btn upload-btn" id="btn-upload-trigger" onclick="document.getElementById('header-file-input').click()">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <span>Upload Data</span>
+        </button>
+        <input type="file" id="header-file-input" accept=".xlsx, .xls, .csv" style="display: none;">
+      </div>
+      <div class="sidebar-user-row" id="user-profile-widget">
+        <div class="sidebar-user-info">
+          <span class="sidebar-user-role" id="user-profile-badge">ADMIN</span>
+          <span class="sidebar-user-name" id="user-profile-name">Administrator</span>
+        </div>
+        <button id="btn-logout" class="sidebar-logout-btn" title="Logout">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </button>
       </div>
     </div>
   </aside>
@@ -112,133 +127,13 @@
 
     <!-- Header -->
         <!-- Top Navbar - Attached Style UI -->
-    <header class="enterprise-navbar">
-      <div class="navbar-left">
-        <button id="btn-menu-toggle" class="btn-navbar-menu" aria-label="Toggle menu">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-        </button>
-        <span id="header-page-name" style="display: none;">Retail Outlet</span>
-        <h1 id="header-page-title" style="display: none;">RETAIL OUTLET</h1>
-        <p id="app-subtitle" style="display: none;">Automation Monitoring</p>
-      </div>
+        <!-- Top Yellow Accent Strip Matching Attached Screenshot -->
+    <div class="top-yellow-accent-strip"></div>
 
-      <div class="navbar-right">
-        <!-- Sync Google Sheet Button -->
-        <button class="navbar-btn-sync" id="btn-sync-sheet" title="Sync Google Sheet">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-          <span>Sync Sheet</span>
-        </button>
-        <span id="link-setup-sheet" style="display: none;"></span>
-
-        <!-- Upload File Button -->
-        <div class="file-input-wrapper" id="header-upload-wrapper">
-          <button class="navbar-btn-upload" id="btn-upload-trigger" onclick="document.getElementById('header-file-input').click()">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            <span>Upload Data</span>
-          </button>
-          <input type="file" id="header-file-input" accept=".xlsx, .xls, .csv" style="display: none;">
-        </div>
-
-        <!-- User Profile Avatar Circle -->
-        <div class="navbar-user-avatar" id="user-profile-widget" title="Admin">
-          <div class="avatar-circle">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="#0284c7"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
-          </div>
-          <span id="user-profile-badge" style="display: none;">ADMIN</span>
-          <span id="user-profile-name" style="display: none;">Administrator</span>
-          <button id="btn-logout" style="display: none;">Logout</button>
-        </div>
-      </div>
-    </header>
-
-    <!-- Global Floating Filter Bar Matching Attached Screenshot -->
-    <div class="global-filter-bar">
-      <div class="global-filter-row">
-        <div class="filter-field-group">
-          <span class="filter-label-floating">Region</span>
-          <select class="filter-input-select" id="global-filter-region">
-            <option value="">ALL</option>
-            <option value="South" selected>South</option>
-          </select>
-        </div>
-
-        <div class="filter-field-group">
-          <span class="filter-label-floating">State Office</span>
-          <select class="filter-input-select" id="global-filter-state">
-            <option value="">ALL</option>
-            <option value="Karnataka" selected>Karnataka</option>
-          </select>
-        </div>
-
-        <div class="filter-field-group">
-          <span class="filter-label-floating">Territory</span>
-          <select class="filter-input-select" id="global-filter-territory">
-            <option value="">ALL</option>
-            <option value="Belgaum" selected>Belgaum</option>
-          </select>
-        </div>
-
-        <div class="filter-field-group">
-          <span class="filter-label-floating">Sales Area</span>
-          <select class="filter-input-select" id="global-filter-sales-area" onchange="if(window.applyGlobalFilters) window.applyGlobalFilters()">
-            <option value="">ALL</option>
-            <option value="Bagalkot">Bagalkot Retail</option>
-            <option value="Desur">Desur Retail</option>
-            <option value="Desur 2">Desur 2 Retail</option>
-            <option value="Dharwad">Dharwad Retail</option>
-            <option value="Haveri">Haveri Retail</option>
-          </select>
-        </div>
-
-        <div class="filter-field-group">
-          <span class="filter-label-floating">Vendor</span>
-          <select class="filter-input-select" id="global-filter-vendor" onchange="if(window.applyGlobalFilters) window.applyGlobalFilters()">
-            <option value="">ALL</option>
-            <option value="PINELABS">PINELABS</option>
-            <option value="RELCON">RELCON</option>
-            <option value="ORPAK">ORPAK</option>
-            <option value="GEMS">GEMS</option>
-            <option value="BCT">BCT</option>
-          </select>
-        </div>
-
-        <div class="filter-field-group">
-          <span class="filter-label-floating">Status</span>
-          <select class="filter-input-select" id="global-filter-status" onchange="if(window.applyGlobalFilters) window.applyGlobalFilters()">
-            <option value="">ALL</option>
-            <option value="Fully Online">Approved (Fully Online)</option>
-            <option value="Partially Online">Partially Online</option>
-            <option value="Offline">Offline</option>
-          </select>
-        </div>
-
-        <div class="filter-field-group">
-          <span class="filter-label-floating">Onboarded Type</span>
-          <select class="filter-input-select" id="global-filter-type" onchange="if(window.applyGlobalFilters) window.applyGlobalFilters()">
-            <option value="">ALL</option>
-            <option value="IOT">IOT</option>
-            <option value="WFCC">WFCC</option>
-          </select>
-        </div>
-      </div>
-    </div>
-
-    <!-- Section Title & Status Count Badge -->
-    <div class="portal-title-banner">
-      <div class="portal-title-flex">
-        <h2 class="portal-main-heading"><span id="portal-tab-title">RETAIL OUTLET</span> <span class="badge-count-teal" id="header-outlets-badge">392</span></h2>
-        <span class="portal-last-refresh">Last refreshed: <span id="portal-live-clock">11/16/2026 10:30:39 PM</span></span>
-        <span id="file-meta" style="display: none;"></span>
-        <span id="file-meta-loaded" style="display: none;"></span>
-        <span id="file-meta-rows" style="display: none;"></span>
-      </div>
-    </div>
-
-    <!-- Main Content Area -->
     <main>
       
       <!-- Upload Dropzone (Visible when no file is loaded) -->
-      <div id="upload-landing-view" class="upload-card-container">
+      <div id="upload-landing-view" class="upload-card-container" style="display: none;">
         <div class="upload-icon">
           <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
         </div>
@@ -264,13 +159,13 @@
       </div>
 
       <!-- Active Dashboard View -->
-      <div id="dashboard-active-view" style="display: none; flex-direction: column; gap: 1.25rem; width: 100%;">
+      <div id="dashboard-active-view" style="display: flex; flex-direction: column; gap: 1.25rem; width: 100%;">
         
         <!-- Tab Content Panels -->
 
         <!-- TAB 1: OVERVIEW -->
                 <!-- TAB: OVERVIEW (Mockup Exact Match) -->
-        <div class="tab-panel" id="tab-overview">
+        <div class="tab-panel active" id="tab-overview">
 
           <!-- Automation Overview Section -->
           <div id="automation-overview-sec" style="width: 100%;">
@@ -296,7 +191,7 @@
                   </div>
                   <span class="kpi-v2-label">Fully Online</span>
                 </div>
-                <div class="kpi-v2-value text-green" id="kpi-fully-online">377</div>
+                <div class="kpi-v2-value text-green" id="kpi-fully-online">381</div>
               </div>
 
               <!-- Card 3: Partially Online (Purple Border) -->
@@ -307,7 +202,7 @@
                   </div>
                   <span class="kpi-v2-label">Partially Online</span>
                 </div>
-                <div class="kpi-v2-value text-purple" id="kpi-partially-online">11</div>
+                <div class="kpi-v2-value text-purple" id="kpi-partially-online">8</div>
               </div>
 
               <!-- Card 4: Offline Outlets (Red Border) -->
@@ -318,7 +213,7 @@
                   </div>
                   <span class="kpi-v2-label">Offline Outlets</span>
                 </div>
-                <div class="kpi-v2-value text-red" id="kpi-offline">4</div>
+                <div class="kpi-v2-value text-red" id="kpi-offline">3</div>
               </div>
 
               <!-- Card 5: MPD Uptime (Sky Blue Border) -->
@@ -329,7 +224,7 @@
                   </div>
                   <span class="kpi-v2-label">MPD Uptime</span>
                 </div>
-                <div class="kpi-v2-value text-sky" id="kpi-mpd-uptime">97.62%</div>
+                <div class="kpi-v2-value text-sky" id="kpi-mpd-uptime">98.69%</div>
               </div>
 
               <!-- Card 6: Tank Uptime (Teal Border) -->
@@ -340,7 +235,7 @@
                   </div>
                   <span class="kpi-v2-label">Tank Uptime</span>
                 </div>
-                <div class="kpi-v2-value text-teal" id="kpi-tank-uptime">98.60%</div>
+                <div class="kpi-v2-value text-teal" id="kpi-tank-uptime">98.92%</div>
               </div>
 
               <!-- Card 7: Territory Uptime (Deep Navy Border) -->
@@ -351,7 +246,7 @@
                   </div>
                   <span class="kpi-v2-label">Territory Uptime</span>
                 </div>
-                <div class="kpi-v2-value text-navy" id="kpi-territory-uptime">98.13%</div>
+                <div class="kpi-v2-value text-navy" id="kpi-territory-uptime">98.81%</div>
               </div>
 
               <!-- Card 8: Auto RSP % (Blue Border) -->
@@ -362,7 +257,7 @@
                   </div>
                   <span class="kpi-v2-label">Auto RSP %</span>
                 </div>
-                <div class="kpi-v2-value text-blue" id="kpi-auto-rsp">98.21%</div>
+                <div class="kpi-v2-value text-blue" id="kpi-auto-rsp">98.98%</div>
               </div>
             </div>
 
@@ -447,17 +342,17 @@
                       <div class="donut-legend-row" onclick="toggleDashboardFilter('status', 'Fully Online')">
                         <span class="donut-dot dot-online"></span>
                         <span class="donut-name">Online</span>
-                        <span class="donut-val" id="donut-val-online">377 (96.17%)</span>
+                        <span class="donut-val" id="donut-val-online">381 (97.19%)</span>
                       </div>
                       <div class="donut-legend-row" onclick="toggleDashboardFilter('status', 'Partially Online')">
                         <span class="donut-dot dot-partial"></span>
                         <span class="donut-name">Partial</span>
-                        <span class="donut-val" id="donut-val-partial">11 (2.81%)</span>
+                        <span class="donut-val" id="donut-val-partial">8 (2.04%)</span>
                       </div>
                       <div class="donut-legend-row" onclick="toggleDashboardFilter('status', 'Offline')">
                         <span class="donut-dot dot-offline"></span>
                         <span class="donut-name">Offline</span>
-                        <span class="donut-val" id="donut-val-offline">4 (1.02%)</span>
+                        <span class="donut-val" id="donut-val-offline">3 (0.77%)</span>
                       </div>
                     </div>
                   </div>
@@ -511,17 +406,17 @@
                     <div class="status-summary-row" onclick="toggleDashboardFilter('status', 'Fully Online')">
                       <span class="donut-dot dot-online"></span>
                       <span class="status-summary-label">Online</span>
-                      <span class="status-summary-val" id="status-cnt-online">377 (96.17%)</span>
+                      <span class="status-summary-val" id="status-cnt-online">381 (97.19%)</span>
                     </div>
                     <div class="status-summary-row" onclick="toggleDashboardFilter('status', 'Partially Online')">
                       <span class="donut-dot dot-partial"></span>
                       <span class="status-summary-label">Partial</span>
-                      <span class="status-summary-val" id="status-cnt-partial">11 (2.81%)</span>
+                      <span class="status-summary-val" id="status-cnt-partial">8 (2.04%)</span>
                     </div>
                     <div class="status-summary-row" onclick="toggleDashboardFilter('status', 'Offline')">
                       <span class="donut-dot dot-offline"></span>
                       <span class="status-summary-label">Offline</span>
-                      <span class="status-summary-val" id="status-cnt-offline">4 (1.02%)</span>
+                      <span class="status-summary-val" id="status-cnt-offline">3 (0.77%)</span>
                     </div>
                   </div>
                   <button class="filter-reset-link" id="filter-reset-global-btn" onclick="resetGlobalDashboardFilters()" style="display: none;">
@@ -1408,7 +1303,7 @@
         </div>
 
         <!-- TAB 5: RO EXPLORER -->
-        <div class="tab-panel active" id="tab-ro-explorer">
+        <div class="tab-panel" id="tab-ro-explorer">
           <div class="enterprise-table-card">
             <!-- Top Action Bar Matching Screenshot -->
             <div class="table-card-top-bar">
@@ -1799,7 +1694,7 @@
       });
       
       // Update sidebar menu active states
-      const menuItems = document.querySelectorAll('.sidebar-menu .menu-item');
+      const menuItems = document.querySelectorAll('.sidebar .menu-item');
       menuItems.forEach(item => {
         item.classList.remove('active');
       });
