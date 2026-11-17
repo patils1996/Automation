@@ -1769,6 +1769,10 @@ function createSummaryRowHtml(row, name, isGrandTotal = false) {
 }
 
 // Populate Filters dynamically
+window.populateFilters = populateFilters;
+window.filterROExplorer = filterROExplorer;
+window.renderROExplorerPage = renderROExplorerPage;
+
 function populateFilters() {
   // Sales Area filter
   const areaSelect = document.getElementById('ro-filter-area');
@@ -1800,18 +1804,20 @@ function filterROExplorer() {
   const searchEl = document.getElementById('ro-search-input');
   const searchQuery = searchEl ? searchEl.value.toLowerCase().trim() : '';
 
-  const statusEl = document.getElementById('global-filter-status') || document.getElementById('ro-filter-status');
+  const statusEl = document.getElementById('ro-filter-status');
   const statusFilter = statusEl ? statusEl.value : '';
 
-  const areaEl = document.getElementById('global-filter-sales-area') || document.getElementById('ro-filter-area');
+  const areaEl = document.getElementById('ro-filter-area');
   const areaFilter = areaEl ? areaEl.value : '';
 
-  const vendorEl = document.getElementById('global-filter-vendor');
-  const vendorFilter = vendorEl ? vendorEl.value : '';
+  const nanoEl = document.getElementById('ro-filter-nano');
+  const nanoFilter = nanoEl ? nanoEl.value : '';
 
-  const nanoFilter = document.getElementById('ro-filter-nano')?.value || '';
-  const techFilter = document.getElementById('ro-filter-technology')?.value || '';
-  const nlFilter = document.getElementById('ro-filter-new-logic')?.value || '';
+  const techEl = document.getElementById('ro-filter-technology');
+  const techFilter = techEl ? techEl.value : '';
+
+  const nlFilterEl = document.getElementById('ro-filter-new-logic');
+  const nlFilter = nlFilterEl ? nlFilterEl.value : '';
   
   roFilteredList = calculatedROs.filter(ro => {
     // Search match
@@ -1826,11 +1832,10 @@ function filterROExplorer() {
     const statusMatch = statusFilter === "" || ro.status === statusFilter;
     const nlMatch = nlFilter === "" || (ro.new_logic_status || ro.ro_online_status || ro.status) === nlFilter;
     const nanoMatch = nanoFilter === "" || ro.nano_status === nanoFilter;
-    const areaMatch = areaFilter === "" || ro.sales_area === areaFilter || (areaFilter && ro.sales_area && ro.sales_area.toLowerCase().includes(areaFilter.toLowerCase()));
-    const vendorMatch = vendorFilter === "" || ro.vendor === vendorFilter;
+    const areaMatch = areaFilter === "" || ro.sales_area === areaFilter;
     const techMatch = techFilter === "" || ro.iot_status === techFilter;
     
-    return searchMatch && statusMatch && nlMatch && nanoMatch && areaMatch && vendorMatch && techMatch;
+    return searchMatch && statusMatch && nlMatch && nanoMatch && areaMatch && techMatch;
   });
   
   sortROs();
@@ -1867,58 +1872,59 @@ function renderROExplorerPage() {
   const pageData = roFilteredList.slice(startIdx, endIdx);
   
   if (total === 0) {
-    tbody.innerHTML = `<tr><td colspan="14" style="text-align: center; padding: 2rem;">No matching retail outlets found.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="19" style="text-align: center; padding: 2rem;">No matching outlets found.</td></tr>`;
     const infoEl = document.getElementById('ro-pagination-info');
     if (infoEl) infoEl.textContent = "Showing 0 to 0 of 0 entries";
+    renderPaginationButtons('ro-pagination-btns', 0, 1, 1, (page) => {});
     return;
   }
   
   pageData.forEach(ro => {
     const tr = document.createElement('tr');
     
-    const onlMpd = ro.onl_mpd !== undefined ? ro.onl_mpd.toFixed(0) : '0';
-    const offMpd = ro.off_mpd !== undefined ? ro.off_mpd.toFixed(0) : '0';
-    const onlTnk = ro.onl_tnk !== undefined ? ro.onl_tnk.toFixed(0) : '0';
-    const offTnk = ro.off_tnk !== undefined ? ro.off_tnk.toFixed(0) : '0';
-
-    const roNum = parseInt(ro.roid) || 116241;
-    const msVol = ro.ms_vol ? Number(ro.ms_vol).toLocaleString() : (((roNum * 7) % 5500) + 1400).toLocaleString();
-    const hsdVol = ro.hsd_vol ? Number(ro.hsd_vol).toLocaleString() : (((roNum * 13) % 11000) + 1600).toLocaleString();
-
-    const isApproved = ro.status === 'Fully Online' || ro.status === 'Approved';
-    const statusHtml = isApproved 
-      ? `<span class="badge-approved">Approved</span>`
-      : `<span class="badge-approved" style="background:#fee2e2; border-color:#fca5a5; color:#dc2626;">${ro.status}</span>`;
+    let statusClass = "badge-offline";
+    if (ro.status === "Fully Online") statusClass = "badge-online";
+    else if (ro.status === "Partially Online") statusClass = "badge-partial";
+    
+    const nlStatus = ro.new_logic_status || ro.ro_online_status || ro.status;
+    let nlClass = "badge-offline";
+    if (nlStatus === "Fully Online") nlClass = "badge-online";
+    else if (nlStatus === "Partially Online" || nlStatus === "Partial") nlClass = "badge-partial";
+    
+    const offMpdVal = parseInt(ro.off_mpd) || 0;
+    const offTnkVal = parseInt(ro.off_tnk) || 0;
+    const offMpdHtml = offMpdVal > 0 ? `<span class="badge badge-offline" style="font-weight: 700;">${offMpdVal}</span>` : '0';
+    const offTnkHtml = offTnkVal > 0 ? `<span class="badge badge-offline" style="font-weight: 700;">${offTnkVal}</span>` : '0';
 
     tr.innerHTML = `
-      <td class="cell-id">${ro.roid}</td>
-      <td class="cell-name-strong" title="${ro.outlet_name}">${ro.outlet_name}</td>
-      <td>Karnataka</td>
-      <td>Belgaum</td>
+      <td style="font-weight: 700; font-family: monospace;">${ro.roid}</td>
+      <td style="font-weight: 700;" title="${ro.outlet_name}">${ro.outlet_name}</td>
       <td>${ro.sales_area}</td>
-      <td>${ro.vendor || 'PINELABS'}</td>
-      <td style="text-align: right; font-variant-numeric: tabular-nums; padding-right: 1.5rem;">${msVol}</td>
-      <td style="text-align: right; font-variant-numeric: tabular-nums; padding-right: 1.5rem;">${hsdVol}</td>
-      <td><span class="badge-pill-green">${onlMpd}</span></td>
-      <td>${parseInt(offMpd) > 0 ? `<span class="badge-pill-red">${offMpd}</span>` : `<span class="text-zero">0</span>`}</td>
-      <td><span class="badge-pill-green">${onlTnk}</span></td>
-      <td>${parseInt(offTnk) > 0 ? `<span class="badge-pill-red">${offTnk}</span>` : `<span class="text-zero">0</span>`}</td>
-      <td>${statusHtml}</td>
-      <td class="action-cell"><button class="btn-action-dots" title="Options">⋮</button></td>
+      <td>${ro.eo_name}</td>
+      <td>${ro.vendor}</td>
+      <td>${ro.mst_name}</td>
+      <td>${ro.auto_rsp}</td>
+      <td>${ro.onb_mpd !== undefined ? ro.onb_mpd.toFixed(0) : '0'}</td>
+      <td>${ro.onl_mpd !== undefined ? ro.onl_mpd.toFixed(0) : '0'}</td>
+      <td>${ro.onb_tnk !== undefined ? ro.onb_tnk.toFixed(0) : '0'}</td>
+      <td>${ro.onl_tnk !== undefined ? ro.onl_tnk.toFixed(0) : '0'}</td>
+      <td>${ro.tot_onb !== undefined ? ro.tot_onb.toFixed(1) : '0'}</td>
+      <td>${ro.tot_onl !== undefined ? ro.tot_onl.toFixed(1) : '0'}</td>
+      <td style="font-weight: 600;">${(ro.uptime !== undefined ? (ro.uptime * 100).toFixed(1) : '0.0')}%</td>
+      <td><span class="badge ${statusClass}">${ro.status}</span></td>
+      <td>${offMpdHtml}</td>
+      <td>${offTnkHtml}</td>
+      <td title="${ro.condition || ''}">${ro.nano_status || '-'}</td>
+      <td><span class="badge ${nlClass}">${nlStatus}</span></td>
     `;
     tbody.appendChild(tr);
   });
   
   const infoEl = document.getElementById('ro-pagination-info');
   if (infoEl) {
-    infoEl.textContent = `${startIdx + 1} - ${endIdx} of ${total}`;
+    infoEl.textContent = `Showing ${startIdx + 1} to ${endIdx} of ${total} entries`;
   }
-
-  const badgeEl = document.getElementById('header-outlets-badge');
-  if (badgeEl) {
-    badgeEl.textContent = total;
-  }
-  
+    
   const maxPages = Math.ceil(total / RO_PAGE_SIZE);
   renderPaginationButtons('ro-pagination-btns', maxPages, roCurrentPage, total, (page) => {
     roCurrentPage = page;

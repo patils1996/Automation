@@ -1303,67 +1303,71 @@
         </div>
 
         <!-- TAB 5: RO EXPLORER -->
+                <!-- TAB 5: RO EXPLORER (Full Proper Business Logic) -->
         <div class="tab-panel" id="tab-ro-explorer">
-          <div class="enterprise-table-card">
-            <!-- Top Action Bar Matching Screenshot -->
-            <div class="table-card-top-bar">
-              <div class="table-top-left">
-                <div class="search-pill-wrapper">
-                  <input type="text" id="ro-search-input" class="search-pill-input" placeholder="Search RO Name / ROID">
-                  <button class="search-pill-submit" aria-label="Search">
-                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#64748b" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                  </button>
-                </div>
+          <div class="table-card">
+            <div class="table-card-header">
+              <h3>Retail Outlet Explorer</h3>
+              <div class="search-filter-controls">
+                <input type="text" class="search-input" id="ro-search-input" placeholder="Search by ROID, Name, TE, RA Vendor, MST...">
+                
+                <select class="filter-select" id="ro-filter-status">
+                  <option value="">All Equipment Statuses</option>
+                  <option value="Fully Online">Fully Online</option>
+                  <option value="Partially Online">Partially Online</option>
+                  <option value="Offline">Offline</option>
+                </select>
 
-                <button class="icon-btn-circle" id="ro-refresh-btn" title="Refresh Table" onclick="renderROExplorerPage()">
-                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#0284c7" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                <select class="filter-select" id="ro-filter-new-logic">
+                  <option value="">All 2 Slot Statuses</option>
+                  <option value="Fully Online">Fully Online</option>
+                  <option value="Partially Online">Partially Online</option>
+                  <option value="Offline">Offline</option>
+                </select>
+
+                <select class="filter-select" id="ro-filter-nano">
+                  <option value="">All NANO Statuses</option>
+                </select>
+
+                <select class="filter-select" id="ro-filter-area">
+                  <option value="">All Sales Areas</option>
+                </select>
+
+                <select class="filter-select" id="ro-filter-technology">
+                  <option value="">All Technologies</option>
+                  <option value="IOT">IOT Only</option>
+                  <option value="WFCC">WFCC Only</option>
+                </select>
+
+                <button class="btn-secondary" id="export-ro-btn">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  Export CSV
                 </button>
-
-                <div class="table-select-pill">
-                  <select id="ro-size-select">
-                    <option>Small</option>
-                    <option>Medium</option>
-                    <option>Large</option>
-                  </select>
-                </div>
-
-                <div class="table-select-pill">
-                  <select id="ro-autorefresh-select">
-                    <option>No Refresh</option>
-                    <option>10s</option>
-                    <option>30s</option>
-                    <option>1m</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="table-top-right">
-                <button class="icon-tool-btn" title="Filter"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg></button>
-                <button class="icon-tool-btn" title="Columns"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></button>
-                <button class="icon-tool-btn" id="export-ro-btn" title="Download CSV"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></button>
-                <button class="icon-tool-btn" title="Save Preset"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></button>
               </div>
             </div>
-
-            <!-- Responsive Table Matching Attached Screenshot -->
             <div class="table-responsive-container">
-              <table class="data-table enterprise-data-table" id="ro-explorer-table">
+              <table class="data-table" id="ro-explorer-table">
                 <thead>
                   <tr>
-                    <th data-sort="roid">ID</th>
-                    <th data-sort="outlet_name">Name</th>
-                    <th>State Office</th>
-                    <th>Territory</th>
+                    <th data-sort="roid">ROID</th>
+                    <th data-sort="outlet_name">Retail Outlet</th>
                     <th data-sort="sales_area">Sales Area</th>
+                    <th data-sort="eo_name">TE Name</th>
                     <th data-sort="vendor">RA Vendor</th>
-                    <th>Petrol Volume (L) <span class="sort-icon">↓</span></th>
-                    <th>Diesel Volume (L)</th>
-                    <th data-sort="onl_mpd">MPD Online</th>
-                    <th data-sort="off_mpd">MPD Offline</th>
-                    <th data-sort="onl_tnk">Tank Online</th>
-                    <th data-sort="off_tnk">Tank Offline</th>
-                    <th data-sort="status">Status</th>
-                    <th>Action</th>
+                    <th data-sort="mst_name">MST Name</th>
+                    <th data-sort="auto_rsp">Auto RSP</th>
+                    <th data-sort="onb_mpd">Onbd MPD</th>
+                    <th data-sort="onl_mpd">Online MPD</th>
+                    <th data-sort="onb_tnk">Onbd Tank</th>
+                    <th data-sort="onl_tnk">Online Tank</th>
+                    <th data-sort="tot_onb">Total Onbd</th>
+                    <th data-sort="tot_onl">Total Online</th>
+                    <th data-sort="uptime">Uptime %</th>
+                    <th data-sort="status">Equipment Status</th>
+                    <th data-sort="off_mpd">Offline MPD</th>
+                    <th data-sort="off_tnk">Offline Tank</th>
+                    <th data-sort="nano_status">NANO Status (Condition)</th>
+                    <th data-sort="new_logic_status">2 Slot Status</th>
                   </tr>
                 </thead>
                 <tbody id="ro-explorer-tbody">
@@ -1371,36 +1375,14 @@
                 </tbody>
               </table>
             </div>
-
-            <!-- Bottom Pagination Matching Attached Screenshot -->
-            <div class="table-card-pagination">
-              <div class="pagination-left">
-                <span>Items per page:</span>
-                <select id="ro-items-per-page" class="pagination-select" onchange="if(window.changeROPageSize) window.changeROPageSize(this.value)">
-                  <option value="10" selected>10</option>
-                  <option value="25">25</option>
-                  <option value="50">50</option>
-                  <option value="100">100</option>
-                </select>
-              </div>
-
-              <div class="pagination-center" id="ro-pagination-info">
-                1 - 10 of 392
-              </div>
-
-              <div class="pagination-controls" id="ro-pagination-btns">
-                <!-- Pagination buttons inserted dynamically -->
-              </div>
-
-              <div class="pagination-right">
-                <span>Go to page:</span>
-                <input type="number" id="ro-goto-page" class="goto-input" value="1" min="1" onchange="if(window.goToROPage) window.goToROPage(this.value)">
+            <div class="pagination-container">
+              <div id="ro-pagination-info">Showing 0 to 0 of 0 entries</div>
+              <div class="pagination-btn-group" id="ro-pagination-btns">
+                <!-- Inserted Dynamically -->
               </div>
             </div>
           </div>
         </div>
-
-        
 
         <!-- TAB 6: MAPPINGS -->
         <div class="tab-panel" id="tab-mapping">
@@ -1711,8 +1693,10 @@
       }
       if (window.uiSetPageTitle) window.uiSetPageTitle(targetTabId, activeItem);
 
-      if (targetTabId === 'tab-ro-explorer' && window.renderROExplorerPage) {
-        window.renderROExplorerPage();
+      if (targetTabId === 'tab-ro-explorer') {
+        if (window.populateFilters) window.populateFilters();
+        if (window.filterROExplorer) window.filterROExplorer();
+        else if (window.renderROExplorerPage) window.renderROExplorerPage();
       }
 
       if (targetTabId === 'tab-day-monitoring' && window.renderDayMonitoringTable) {
