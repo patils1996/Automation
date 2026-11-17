@@ -1,7 +1,9 @@
-const CACHE_NAME = 'bpcl-dashboard-v19';
+const CACHE_NAME = 'bpcl-dashboard-v21';
 const ASSETS = [
   './',
   './index.html',
+  './manifest.json',
+  './pwa-install.js',
   './styles.css',
   './ui-refresh.css',
   './ui-refresh.js',
@@ -18,7 +20,10 @@ const ASSETS = [
   './chart.umd.min.js',
   './bpcl_emblem_official.png',
   './bpcl_logo_card.png',
-  './sidebar_skyline.png'
+  './sidebar_skyline.png',
+  './icon-192.png',
+  './icon-512.png',
+  './apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (e) => {

@@ -20,9 +20,13 @@
   
   <!-- PWA Manifest & Icons -->
   <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <meta name="apple-mobile-web-app-status-bar" content="#003F87">
-  <meta name="theme-color" content="#002a5c">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BPCL Uptime">
+  <meta name="theme-color" content="#01204c">
+  <script src="pwa-install.js" defer></script>
 </head>
 <body>
 
@@ -110,6 +114,10 @@
         </button>
         <input type="file" id="header-file-input" accept=".xlsx, .xls, .csv" style="display: none;">
       </div>
+      <button class="sidebar-action-btn install-btn" id="btn-sidebar-install" title="Install Web App" style="display: none;">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Install App</span>
+      </button>
       <div class="sidebar-user-row" id="user-profile-widget">
         <div class="sidebar-user-info">
           <span class="sidebar-user-role" id="user-profile-badge">ADMIN</span>
@@ -135,6 +143,9 @@
         <span class="mobile-brand-sub">Automation Dashboard</span>
       </div>
       <div class="mobile-bar-actions">
+        <button class="mobile-action-icon-btn mobile-install-btn" id="btn-mobile-install" title="Install App" style="display: none;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fbbf24" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
         <button class="mobile-action-icon-btn mobile-sync-btn" onclick="document.getElementById('btn-sync-sheet')?.click()" title="Sync Google Sheet">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#10b981" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
         </button>
@@ -1683,6 +1694,7 @@
   <!-- Global script for sidebar navigation -->
   <script>
     function switchSidebarTab(targetTabId) {
+      document.body.classList.remove('sidebar-open');
       // Find the tab panel with the target ID
       const tabPanels = document.querySelectorAll('.tab-panel');
       tabPanels.forEach(panel => {
@@ -1832,6 +1844,92 @@
           </button>
         </form>
         <p class="login-footnote">Default password: <code>password</code> · Access is scoped by role.</p>
+      </div>
+    </div>
+  </div>
+
+  
+  <!-- PWA INSTALLATION POPUP MODAL -->
+  <div id="pwa-install-modal" class="pwa-modal-overlay" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="pwa-modal-title">
+    <div class="pwa-modal-card">
+      <button id="btn-pwa-dismiss" class="pwa-modal-close" aria-label="Close install popup">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+
+      <div class="pwa-modal-header">
+        <div class="pwa-app-icon-wrapper">
+          <img src="icon-192.png" alt="BPCL App Icon" class="pwa-app-icon">
+          <div class="pwa-badge-pulse"></div>
+        </div>
+        <div class="pwa-header-text">
+          <span class="pwa-kicker">BPCL Automation Suite</span>
+          <h2 id="pwa-modal-title" class="pwa-modal-title">Install BPCL Dashboard App</h2>
+          <p class="pwa-modal-subtitle">Add to your Home Screen or Desktop for fast 1-click launch, full-screen view, and offline capability.</p>
+        </div>
+      </div>
+
+      <div class="pwa-features-grid">
+        <div class="pwa-feature-item">
+          <div class="pwa-feat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00873d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+          </div>
+          <div class="pwa-feat-info">
+            <strong>Instant 1-Tap Launch</strong>
+            <span>Direct access from home screen or taskbar without opening browser URL</span>
+          </div>
+        </div>
+        <div class="pwa-feature-item">
+          <div class="pwa-feat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#01204c" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+          </div>
+          <div class="pwa-feature-info">
+            <strong>Universal Multi-Device Layout</strong>
+            <span>Perfect responsive fit for Mobile, Tablet, Laptop, PC & Ultra-wide displays</span>
+          </div>
+        </div>
+        <div class="pwa-feature-item">
+          <div class="pwa-feat-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e6be42" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+          </div>
+          <div class="pwa-feature-info">
+            <strong>Offline Caching & Fast Sync</strong>
+            <span>Cached telemetry, charts & tables load instantly even with low bandwidth</span>
+          </div>
+        </div>
+      </div>
+
+            <!-- Desktop Browser Instructions (shown when native prompt unavailable) -->
+      <div id="pwa-desktop-guide" class="pwa-desktop-guide" style="display: none;">
+        <div class="pwa-guide-item">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2563eb" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+          <span>Click the <strong>Install icon (⊕)</strong> on the right of your browser address bar</span>
+        </div>
+        <div class="pwa-guide-item">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2563eb" stroke-width="2.2"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+          <span>Or open browser menu (⋮) ➔ <strong>"Install BPCL Dashboard"</strong></span>
+        </div>
+      </div>
+
+      <!-- iOS Safari Instructions (shown only on iOS) -->
+      <div id="pwa-ios-instructions" class="pwa-ios-guide" style="display: none;">
+        <div class="pwa-ios-step">
+          <span class="pwa-step-num">1</span>
+          <span>Tap the <strong>Share</strong> button <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; display: inline-block;"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg> in Safari toolbar</span>
+        </div>
+        <div class="pwa-ios-step">
+          <span class="pwa-step-num">2</span>
+          <span>Scroll down and select <strong>"Add to Home Screen"</strong> <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; display: inline-block;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg></span>
+        </div>
+      </div>
+
+      <div class="pwa-modal-actions">
+        <button id="btn-pwa-later" class="btn-pwa-secondary" type="button">
+          Maybe Later
+        </button>
+        <button id="btn-pwa-install-action" class="btn-pwa-primary" type="button">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Install App Now
+        </button>
       </div>
     </div>
   </div>
