@@ -2795,3 +2795,491 @@ body.dark-mode #tab-new-logic .mis-barbg {
   cursor: pointer;
   text-align: center;
 }
+
+
+
+/* ==========================================================================
+   OFFICIAL BHARAT PETROLEUM ENTERPRISE PORTAL UI (ATTACHED SCREENSHOT STYLE)
+   ========================================================================== */
+
+/* 1. Sidebar - Sleek Dark Slate */
+.enterprise-sidebar {
+  width: 205px !important;
+  min-width: 205px !important;
+  background: #0f172a !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 100vh;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+  z-index: 50;
+  position: relative;
+}
+
+.sidebar-brand-box {
+  padding: 16px 12px 10px 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sidebar-logo-card {
+  background: #ffffff !important;
+  border-radius: 8px !important;
+  padding: 6px 8px !important;
+  width: 66px !important;
+  height: 66px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+}
+
+.bpcl-official-emblem {
+  width: 52px !important;
+  height: 52px !important;
+  object-fit: contain !important;
+  display: block !important;
+}
+
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5px;
+  padding: 6px 8px;
+  flex: 1;
+}
+
+.sidebar-menu .menu-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 8px 14px !important;
+  border-radius: 6px !important;
+  margin: 1px 4px !important;
+  color: #94a3b8 !important;
+  font-size: 11.5px !important;
+  font-weight: 500 !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.sidebar-menu .menu-item svg {
+  stroke: #94a3b8 !important;
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+}
+
+.sidebar-menu .menu-item:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  color: #ffffff !important;
+}
+
+.sidebar-menu .menu-item:hover svg {
+  stroke: #ffffff !important;
+}
+
+.sidebar-menu .menu-item.active {
+  background: #1e293b !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+}
+
+.sidebar-menu .menu-item.active svg {
+  stroke: #ffffff !important;
+}
+
+/* 2. Top Navbar - Clean White Bar */
+.enterprise-navbar {
+  background: #ffffff !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 20px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+  position: relative;
+  z-index: 30;
+}
+
+.btn-navbar-menu {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.btn-navbar-menu:hover {
+  background: #f1f5f9;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navbar-btn-sync {
+  background: #ffffff !important;
+  color: #059669 !important;
+  border: 1.5px solid #10b981 !important;
+  border-radius: 9999px !important;
+  padding: 4px 12px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.navbar-btn-sync:hover {
+  background: #ecfdf5 !important;
+}
+
+.navbar-btn-upload {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 9999px !important;
+  padding: 4px 12px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  cursor: pointer;
+}
+
+.navbar-btn-upload:hover {
+  background: #f8fafc !important;
+}
+
+.avatar-circle {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #e0f2fe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px solid #bae6fd;
+}
+
+/* 3. Global Outlined Dropdowns Filter Row */
+.global-filter-bar {
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 10px 20px;
+}
+
+.global-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.filter-field-group {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 2px 8px;
+  min-width: 125px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+}
+
+.filter-label-floating {
+  position: absolute;
+  top: -6.5px;
+  left: 8px;
+  background: #ffffff;
+  padding: 0 4px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.filter-input-select {
+  border: none;
+  outline: none;
+  width: 100%;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+/* 4. Section Title & Status Badge */
+.portal-title-banner {
+  padding: 14px 20px 6px 20px;
+}
+
+.portal-title-flex {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.portal-main-heading {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.badge-count-teal {
+  background: #0d9488;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 1px 8px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.portal-last-refresh {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+/* 5. Enterprise Table Card */
+.enterprise-table-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  padding: 14px 16px;
+  margin: 8px 20px 24px 20px;
+}
+
+.table-card-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.table-top-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-pill-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-pill-input {
+  border: 1px solid #cbd5e1;
+  border-radius: 20px;
+  padding: 5px 30px 5px 12px;
+  font-size: 11px;
+  color: #0f172a;
+  outline: none;
+  width: 200px;
+}
+
+.search-pill-input:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+}
+
+.search-pill-submit {
+  position: absolute;
+  right: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.icon-btn-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.table-select-pill select {
+  border: 1px solid #cbd5e1;
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #475569;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.table-top-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.icon-tool-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.icon-tool-btn:hover {
+  background: #f0f9ff;
+}
+
+.enterprise-data-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  font-size: 11px !important;
+}
+
+.enterprise-data-table thead th {
+  background: #ffffff !important;
+  color: #1e293b !important;
+  font-weight: 700 !important;
+  text-align: left !important;
+  padding: 10px 12px !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+  white-space: nowrap !important;
+  font-size: 11px !important;
+}
+
+.enterprise-data-table tbody td {
+  padding: 9px 12px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  color: #334155 !important;
+  font-size: 11px !important;
+  vertical-align: middle !important;
+}
+
+.enterprise-data-table tbody tr:hover {
+  background: #f8fafc !important;
+}
+
+.cell-id {
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  font-family: monospace !important;
+}
+
+.cell-name-strong {
+  font-weight: 700 !important;
+  color: #0f172a !important;
+}
+
+.badge-pill-green {
+  background: #16a34a !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  font-size: 11px !important;
+  border-radius: 4px !important;
+  padding: 2px 10px !important;
+  display: inline-block !important;
+  min-width: 24px !important;
+  text-align: center !important;
+}
+
+.badge-pill-red {
+  background: #dc2626 !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  font-size: 11px !important;
+  border-radius: 4px !important;
+  padding: 2px 10px !important;
+  display: inline-block !important;
+  min-width: 24px !important;
+  text-align: center !important;
+}
+
+.text-zero {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  padding: 0 4px !important;
+}
+
+.badge-approved {
+  background: #f0fdf4 !important;
+  border: 1px solid #86efac !important;
+  color: #16a34a !important;
+  font-weight: 700 !important;
+  font-size: 10.5px !important;
+  border-radius: 20px !important;
+  padding: 2px 10px !important;
+  display: inline-block !important;
+}
+
+.btn-action-dots {
+  border: none !important;
+  background: transparent !important;
+  color: #0284c7 !important;
+  font-size: 16px !important;
+  cursor: pointer !important;
+  padding: 2px 6px !important;
+  font-weight: bold !important;
+}
+
+/* Pagination Bar */
+.table-card-pagination {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 12px 0 4px 0 !important;
+  font-size: 11px !important;
+  color: #64748b !important;
+  font-weight: 600 !important;
+}
+
+.pagination-left, .pagination-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pagination-select, .goto-input {
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0f172a;
+  background: #fff;
+}

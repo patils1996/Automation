@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bpcl-dashboard-v15';
+const CACHE_NAME = 'bpcl-dashboard-v16';
 const ASSETS = [
   './',
   './index.html',
@@ -16,6 +16,7 @@ const ASSETS = [
   './sample_data.js',
   './xlsx.full.min.js',
   './chart.umd.min.js',
+  './bpcl_emblem_official.png',
   './bpcl_logo_card.png',
   './sidebar_skyline.png'
 ];

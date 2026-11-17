@@ -26,79 +26,84 @@
 </head>
 <body>
 
-  <!-- Sidebar (Left) -->
-  <aside class="sidebar" aria-label="Main navigation">
-    <div class="sidebar-top">
+  <!-- Sidebar (Left) - Attached Style UI -->
+  <aside class="sidebar enterprise-sidebar" id="app-sidebar" aria-label="Main navigation">
+    <div class="sidebar-brand-box">
       <div class="sidebar-logo-card">
-        <img src="bpcl_logo_card.png" alt="Bharat Petroleum - Energising Lives" class="bpcl-logo-img">
-      </div>
-      <div class="sidebar-brand-caption">
-        <span class="sidebar-brand-title">Automation Uptime</span>
-        <span class="sidebar-brand-sub">Belgaum Retail Territory</span>
+        <img src="bpcl_emblem_official.png" alt="Bharat Petroleum - Energising Lives" class="bpcl-official-emblem">
       </div>
     </div>
+    
+    <div class="sidebar-menu">
+      <div class="menu-item" title="Overview" id="sidebar-overview-btn" onclick="switchSidebarTab('tab-overview')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+        <span>Overview</span>
+      </div>
 
-    <nav class="sidebar-menu">
-      <div class="menu-section-label">Overview</div>
-      <a href="#" class="menu-item active" title="Dashboard" data-tab="tab-overview" id="sidebar-dashboard-btn" onclick="switchSidebarTab('tab-overview'); return false;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      <div class="menu-item active" title="Retail Outlet" id="sidebar-ro-explorer-btn" onclick="switchSidebarTab('tab-ro-explorer')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"></path><path d="M9 8h1"></path><path d="M9 12h1"></path><path d="M9 16h1"></path><path d="M14 8h1"></path><path d="M14 12h1"></path><path d="M14 16h1"></path><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path></svg>
+        <span>Retail Outlet</span>
+      </div>
+
+      <div class="menu-item" title="DDD Browser" id="sidebar-day-monitoring-btn" onclick="switchSidebarTab('tab-day-monitoring')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+        <span>DDD Browser</span>
+      </div>
+
+      <div class="menu-item" title="Dashboard" id="sidebar-new-logic-btn" onclick="switchSidebarTab('tab-new-logic')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
         <span>Dashboard</span>
-      </a>
-      <a href="#" class="menu-item" title="MIS Dashboard" data-tab="tab-new-logic" id="sidebar-new-logic-btn" onclick="switchSidebarTab('tab-new-logic'); return false;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-        <span>MIS Dashboard</span>
-      </a>
-      <a href="#" class="menu-item" title="Performance Trend" data-tab="tab-performance-trend" id="sidebar-performance-trend-btn" onclick="switchSidebarTab('tab-performance-trend'); return false;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path></svg>
-        <span>Performance Trend</span>
-      </a>
-      <div class="menu-section-label">Monitoring</div>
-      <a href="#" class="menu-item" title="Day Monitoring" data-tab="tab-day-monitoring" id="sidebar-day-monitoring-btn" onclick="switchSidebarTab('tab-day-monitoring'); return false;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-        <span>Day Monitoring</span>
-      </a>
-      <a href="#" class="menu-item" title="Monitoring" data-tab="tab-monitoring" id="sidebar-monitoring-btn" onclick="switchSidebarTab('tab-monitoring'); return false;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
-        <span>Monitoring</span>
-      </a>
-      <a href="#" class="menu-item" title="Comparison" data-tab="tab-comparison" id="sidebar-comparison-btn" onclick="switchSidebarTab('tab-comparison'); return false;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="18" r="3"></circle><circle cx="6" cy="6" r="3"></circle><path d="M6 9v12"></path><path d="M18 9a9 9 0 0 0-9 9"></path></svg>
-        <span>Comparison</span>
-      </a>
-      <a href="#" class="menu-item" title="Outlets Status" data-tab="tab-outlets-status" id="sidebar-outlets-status-btn" onclick="switchSidebarTab('tab-outlets-status'); return false;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-        <span>Outlets Status</span>
-      </a>
-      <div class="menu-section-label">Summaries</div>
-      <a href="#" class="menu-item" title="Sales Areas" data-tab="tab-sales-area" onclick="switchSidebarTab('tab-sales-area'); return false;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-        <span>Sales Areas</span>
-      </a>
-      <a href="#" class="menu-item" title="Vendor Summary" data-tab="tab-vendor-summary" onclick="switchSidebarTab('tab-vendor-summary'); return false;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
-        <span>Vendor Summary</span>
-      </a>
-      <a href="#" class="menu-item" title="TE Summary" data-tab="tab-eo-summary" onclick="switchSidebarTab('tab-eo-summary'); return false;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-        <span>TE Summary</span>
-      </a>
-      <a href="#" class="menu-item" title="SO Summary" data-tab="tab-so-summary" onclick="switchSidebarTab('tab-so-summary'); return false;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="9" y1="22" x2="9" y2="22.01"></line><line x1="15" y1="22" x2="15" y2="22.01"></line><line x1="9" y1="18" x2="9" y2="18.01"></line><line x1="15" y1="18" x2="15" y2="18.01"></line><line x1="9" y1="14" x2="9" y2="14.01"></line><line x1="15" y1="14" x2="15" y2="14.01"></line><line x1="9" y1="10" x2="9" y2="10.01"></line><line x1="15" y1="10" x2="15" y2="10.01"></line><line x1="9" y1="6" x2="9" y2="6.01"></line><line x1="15" y1="6" x2="15" y2="6.01"></line></svg>
-        <span>SO Summary</span>
-      </a>
-      <div class="menu-section-label">Data</div>
-      <a href="#" class="menu-item" title="RO Explorer" data-tab="tab-ro-explorer" onclick="switchSidebarTab('tab-ro-explorer'); return false;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-        <span>RO Explorer</span>
-      </a>
-      <a href="#" class="menu-item" title="Mappings Database" data-tab="tab-mapping" onclick="switchSidebarTab('tab-mapping'); return false;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
-        <span>Mappings Database</span>
-      </a>
-    </nav>
+      </div>
 
-    <div class="sidebar-bottom">
-      <img src="sidebar_skyline.png" alt="" aria-hidden="true" class="sidebar-skyline-img">
+      <div class="menu-item" title="RO Report" id="sidebar-monitoring-btn" onclick="switchSidebarTab('tab-monitoring')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"></path><path d="M22 12A10 10 0 0 0 12 2v10z"></path></svg>
+        <span>RO Report</span>
+      </div>
+
+      <div class="menu-item" title="Transactions" id="sidebar-comparison-btn" onclick="switchSidebarTab('tab-comparison')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
+        <span>Transactions</span>
+      </div>
+
+      <div class="menu-item" title="Sales" id="sidebar-sales-area-btn" onclick="switchSidebarTab('tab-sales-area')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        <span>Sales</span>
+      </div>
+
+      <div class="menu-item" title="Shift Reports" id="sidebar-outlets-status-btn" onclick="switchSidebarTab('tab-outlets-status')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        <span>Shift Reports</span>
+      </div>
+
+      <div class="menu-item" title="Interlock" id="sidebar-performance-trend-btn" onclick="switchSidebarTab('tab-performance-trend')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
+        <span>Interlock</span>
+      </div>
+
+      <div class="menu-item" title="Users" id="sidebar-eo-summary-btn" onclick="switchSidebarTab('tab-eo-summary')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span>Users</span>
+      </div>
+
+      <div class="menu-item" title="IOT Device Master" id="sidebar-so-summary-btn" onclick="switchSidebarTab('tab-so-summary')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <span>IOT Device Master</span>
+      </div>
+
+      <div class="menu-item" title="Calibration Chart" id="sidebar-vendor-summary-btn" onclick="switchSidebarTab('tab-vendor-summary')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        <span>Calibration Chart</span>
+      </div>
+
+      <div class="menu-item" title="Alerts" id="sidebar-alerts-btn" onclick="switchSidebarTab('tab-day-monitoring')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        <span>Alerts</span>
+      </div>
+
+      <div class="menu-item" title="Audit Logs" id="sidebar-mapping-btn" onclick="switchSidebarTab('tab-mapping')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+        <span>Audit Logs</span>
+      </div>
     </div>
   </aside>
 
@@ -106,85 +111,128 @@
   <div class="app-container">
 
     <!-- Header -->
-    <header class="bpcl-header">
-      <div class="header-row">
-        <button id="btn-menu-toggle" class="btn-menu-toggle" aria-label="Toggle menu">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        <!-- Top Navbar - Attached Style UI -->
+    <header class="enterprise-navbar">
+      <div class="navbar-left">
+        <button id="btn-menu-toggle" class="btn-navbar-menu" aria-label="Toggle menu">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#475569" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
         </button>
-
-        <div class="header-left-content">
-          <div class="header-breadcrumb">
-            <span>BPCL Belgaum Territory</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-            <span id="header-page-name">Dashboard</span>
-          </div>
-          <h1 class="header-title" id="header-page-title">Automation Uptime <span class="highlight-yellow">Dashboard</span></h1>
-          <p class="header-subtitle" id="app-subtitle">Automation | IFMS | Uptime Monitoring</p>
-        </div>
-
-        <div class="header-right-actions">
-          <div class="header-actions-row">
-            <div class="action-btn-group">
-              <button class="btn-sync-pill" id="btn-sync-sheet" title="Pull the latest data from the configured Google Sheet">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-                <span>Sync Sheet</span>
-              </button>
-              <span id="link-setup-sheet" style="display: none;" class="link-setup-sheet">Configure</span>
-            </div>
-            <div class="file-input-wrapper" id="header-upload-wrapper">
-              <button class="btn-upload-pill" id="btn-upload-trigger" onclick="document.getElementById('header-file-input').click()" title="Upload an Excel / CSV export">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                <span>Upload Data</span>
-              </button>
-              <input type="file" id="header-file-input" accept=".xlsx, .xls, .csv" style="display: none;">
-            </div>
-          </div>
-          <div class="user-profile-container" id="user-profile-widget">
-            <button class="btn-user-pill" id="btn-user-profile-toggle" onclick="toggleUserDropdown()" aria-haspopup="true">
-              <span class="user-avatar">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-              </span>
-              <span id="user-profile-badge">ADMIN</span>
-              <svg class="chevron-down" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </button>
-            <div class="user-dropdown-menu" id="user-dropdown-menu" style="display: none;">
-              <div class="user-dropdown-info">
-                <strong id="user-profile-name">Administrator</strong>
-                <small id="user-profile-role-desc">Full System Access</small>
-              </div>
-              <button class="dropdown-item-logout" id="btn-logout">
-                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                Logout
-              </button>
-            </div>
-          </div>
-        </div>
+        <span id="header-page-name" style="display: none;">Retail Outlet</span>
+        <h1 id="header-page-title" style="display: none;">RETAIL OUTLET</h1>
+        <p id="app-subtitle" style="display: none;">Automation Monitoring</p>
       </div>
 
-      <div class="header-toolbar">
-        <div class="header-pills-row">
-          <div class="info-pill">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
-            <span>Belgaum Territory</span>
-          </div>
-          <div class="info-pill" id="header-date-pill">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            <span id="header-live-date">&nbsp;</span>
-            <span class="pill-sep"></span>
-            <span id="header-live-clock" class="mono">&nbsp;</span>
-          </div>
-          <div class="info-pill pill-accent" id="header-outlets-badge">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 22h12"></path><path d="M4 9h10"></path><path d="M4 22V4a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v18"></path><path d="M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 2 2a2 2 0 0 0 2-2V9.83a2 2 0 0 0-.59-1.42L18 5"></path></svg>
-            <span id="header-outlets-count">– Outlets</span>
-          </div>
-          <div class="header-file-meta-box">
-            <span class="meta-dot"></span>
-            <span id="file-meta">No data loaded yet</span>
-          </div>
+      <div class="navbar-right">
+        <!-- Sync Google Sheet Button -->
+        <button class="navbar-btn-sync" id="btn-sync-sheet" title="Sync Google Sheet">
+          <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+          <span>Sync Sheet</span>
+        </button>
+        <span id="link-setup-sheet" style="display: none;"></span>
+
+        <!-- Upload File Button -->
+        <div class="file-input-wrapper" id="header-upload-wrapper">
+          <button class="navbar-btn-upload" id="btn-upload-trigger" onclick="document.getElementById('header-file-input').click()">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Upload Data</span>
+          </button>
+          <input type="file" id="header-file-input" accept=".xlsx, .xls, .csv" style="display: none;">
         </div>
 
+        <!-- User Profile Avatar Circle -->
+        <div class="navbar-user-avatar" id="user-profile-widget" title="Admin">
+          <div class="avatar-circle">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="#0284c7"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+          </div>
+          <span id="user-profile-badge" style="display: none;">ADMIN</span>
+          <span id="user-profile-name" style="display: none;">Administrator</span>
+          <button id="btn-logout" style="display: none;">Logout</button>
+        </div>
       </div>
     </header>
+
+    <!-- Global Floating Filter Bar Matching Attached Screenshot -->
+    <div class="global-filter-bar">
+      <div class="global-filter-row">
+        <div class="filter-field-group">
+          <span class="filter-label-floating">Region</span>
+          <select class="filter-input-select" id="global-filter-region">
+            <option value="">ALL</option>
+            <option value="South" selected>South</option>
+          </select>
+        </div>
+
+        <div class="filter-field-group">
+          <span class="filter-label-floating">State Office</span>
+          <select class="filter-input-select" id="global-filter-state">
+            <option value="">ALL</option>
+            <option value="Karnataka" selected>Karnataka</option>
+          </select>
+        </div>
+
+        <div class="filter-field-group">
+          <span class="filter-label-floating">Territory</span>
+          <select class="filter-input-select" id="global-filter-territory">
+            <option value="">ALL</option>
+            <option value="Belgaum" selected>Belgaum</option>
+          </select>
+        </div>
+
+        <div class="filter-field-group">
+          <span class="filter-label-floating">Sales Area</span>
+          <select class="filter-input-select" id="global-filter-sales-area" onchange="if(window.applyGlobalFilters) window.applyGlobalFilters()">
+            <option value="">ALL</option>
+            <option value="Bagalkot">Bagalkot Retail</option>
+            <option value="Desur">Desur Retail</option>
+            <option value="Desur 2">Desur 2 Retail</option>
+            <option value="Dharwad">Dharwad Retail</option>
+            <option value="Haveri">Haveri Retail</option>
+          </select>
+        </div>
+
+        <div class="filter-field-group">
+          <span class="filter-label-floating">Vendor</span>
+          <select class="filter-input-select" id="global-filter-vendor" onchange="if(window.applyGlobalFilters) window.applyGlobalFilters()">
+            <option value="">ALL</option>
+            <option value="PINELABS">PINELABS</option>
+            <option value="RELCON">RELCON</option>
+            <option value="ORPAK">ORPAK</option>
+            <option value="GEMS">GEMS</option>
+            <option value="BCT">BCT</option>
+          </select>
+        </div>
+
+        <div class="filter-field-group">
+          <span class="filter-label-floating">Status</span>
+          <select class="filter-input-select" id="global-filter-status" onchange="if(window.applyGlobalFilters) window.applyGlobalFilters()">
+            <option value="">ALL</option>
+            <option value="Fully Online">Approved (Fully Online)</option>
+            <option value="Partially Online">Partially Online</option>
+            <option value="Offline">Offline</option>
+          </select>
+        </div>
+
+        <div class="filter-field-group">
+          <span class="filter-label-floating">Onboarded Type</span>
+          <select class="filter-input-select" id="global-filter-type" onchange="if(window.applyGlobalFilters) window.applyGlobalFilters()">
+            <option value="">ALL</option>
+            <option value="IOT">IOT</option>
+            <option value="WFCC">WFCC</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section Title & Status Count Badge -->
+    <div class="portal-title-banner">
+      <div class="portal-title-flex">
+        <h2 class="portal-main-heading"><span id="portal-tab-title">RETAIL OUTLET</span> <span class="badge-count-teal" id="header-outlets-badge">392</span></h2>
+        <span class="portal-last-refresh">Last refreshed: <span id="portal-live-clock">11/16/2026 10:30:39 PM</span></span>
+        <span id="file-meta" style="display: none;"></span>
+        <span id="file-meta-loaded" style="display: none;"></span>
+        <span id="file-meta-rows" style="display: none;"></span>
+      </div>
+    </div>
 
     <!-- Main Content Area -->
     <main>
@@ -222,7 +270,7 @@
 
         <!-- TAB 1: OVERVIEW -->
                 <!-- TAB: OVERVIEW (Mockup Exact Match) -->
-        <div class="tab-panel active" id="tab-overview">
+        <div class="tab-panel" id="tab-overview">
 
           <!-- Automation Overview Section -->
           <div id="automation-overview-sec" style="width: 100%;">
@@ -1360,72 +1408,67 @@
         </div>
 
         <!-- TAB 5: RO EXPLORER -->
-        <div class="tab-panel" id="tab-ro-explorer">
-          <div class="table-card">
-            <div class="table-card-header">
-              <h3>Retail Outlet Explorer</h3>
-              <div class="search-filter-controls">
-                <input type="text" class="search-input" id="ro-search-input" placeholder="Search by ROID, Name, TE, RA Vendor, MST...">
-                
-                <select class="filter-select" id="ro-filter-status">
-                  <option value="">All Equipment Statuses</option>
-                  <option value="Fully Online">Fully Online</option>
-                  <option value="Partially Online">Partially Online</option>
-                  <option value="Offline">Offline</option>
-                </select>
+        <div class="tab-panel active" id="tab-ro-explorer">
+          <div class="enterprise-table-card">
+            <!-- Top Action Bar Matching Screenshot -->
+            <div class="table-card-top-bar">
+              <div class="table-top-left">
+                <div class="search-pill-wrapper">
+                  <input type="text" id="ro-search-input" class="search-pill-input" placeholder="Search RO Name / ROID">
+                  <button class="search-pill-submit" aria-label="Search">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#64748b" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  </button>
+                </div>
 
-                <select class="filter-select" id="ro-filter-new-logic">
-                  <option value="">All 2 Slot Statuses</option>
-                  <option value="Fully Online">Fully Online</option>
-                  <option value="Partially Online">Partially Online</option>
-                  <option value="Offline">Offline</option>
-                </select>
-
-                <select class="filter-select" id="ro-filter-nano">
-                  <option value="">All NANO Statuses</option>
-                  <!-- Filled dynamically -->
-                </select>
-
-                <select class="filter-select" id="ro-filter-area">
-                  <option value="">All Sales Areas</option>
-                  <!-- Filled dynamically -->
-                </select>
-
-                <select class="filter-select" id="ro-filter-technology">
-                  <option value="">All Technologies</option>
-                  <option value="IOT">IOT Only</option>
-                  <option value="WFCC">WFCC Only</option>
-                </select>
-
-                <button class="btn-secondary" id="export-ro-btn">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                  Export CSV
+                <button class="icon-btn-circle" id="ro-refresh-btn" title="Refresh Table" onclick="renderROExplorerPage()">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#0284c7" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
                 </button>
+
+                <div class="table-select-pill">
+                  <select id="ro-size-select">
+                    <option>Small</option>
+                    <option>Medium</option>
+                    <option>Large</option>
+                  </select>
+                </div>
+
+                <div class="table-select-pill">
+                  <select id="ro-autorefresh-select">
+                    <option>No Refresh</option>
+                    <option>10s</option>
+                    <option>30s</option>
+                    <option>1m</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="table-top-right">
+                <button class="icon-tool-btn" title="Filter"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg></button>
+                <button class="icon-tool-btn" title="Columns"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></button>
+                <button class="icon-tool-btn" id="export-ro-btn" title="Download CSV"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></button>
+                <button class="icon-tool-btn" title="Save Preset"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg></button>
               </div>
             </div>
+
+            <!-- Responsive Table Matching Attached Screenshot -->
             <div class="table-responsive-container">
-              <table class="data-table" id="ro-explorer-table">
+              <table class="data-table enterprise-data-table" id="ro-explorer-table">
                 <thead>
                   <tr>
-                    <th data-sort="roid">ROID</th>
-                    <th data-sort="outlet_name">Retail Outlet</th>
+                    <th data-sort="roid">ID</th>
+                    <th data-sort="outlet_name">Name</th>
+                    <th>State Office</th>
+                    <th>Territory</th>
                     <th data-sort="sales_area">Sales Area</th>
-                    <th data-sort="eo_name">TE Name</th>
                     <th data-sort="vendor">RA Vendor</th>
-                    <th data-sort="mst_name">MST Name</th>
-                    <th data-sort="auto_rsp">Auto RSP</th>
-                    <th data-sort="onb_mpd">Onbd MPD</th>
-                    <th data-sort="onl_mpd">Online MPD</th>
-                    <th data-sort="onb_tnk">Onbd Tank</th>
-                    <th data-sort="onl_tnk">Online Tank</th>
-                    <th data-sort="tot_onb">Total Onbd</th>
-                    <th data-sort="tot_onl">Total Online</th>
-                    <th data-sort="uptime">Uptime %</th>
-                    <th data-sort="status">Equipment Status</th>
-                    <th data-sort="off_mpd">Offline MPD</th>
-                    <th data-sort="off_tnk">Offline Tank</th>
-                    <th data-sort="nano_status">NANO Status (Condition)</th>
-                    <th data-sort="new_logic_status">2 Slot Status</th>
+                    <th>Petrol Volume (L) <span class="sort-icon">↓</span></th>
+                    <th>Diesel Volume (L)</th>
+                    <th data-sort="onl_mpd">MPD Online</th>
+                    <th data-sort="off_mpd">MPD Offline</th>
+                    <th data-sort="onl_tnk">Tank Online</th>
+                    <th data-sort="off_tnk">Tank Offline</th>
+                    <th data-sort="status">Status</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody id="ro-explorer-tbody">
@@ -1433,14 +1476,36 @@
                 </tbody>
               </table>
             </div>
-            <div class="pagination-container">
-              <div id="ro-pagination-info">Showing 0 to 0 of 0 entries</div>
-              <div class="pagination-btn-group" id="ro-pagination-btns">
-                <!-- Inserted Dynamically -->
+
+            <!-- Bottom Pagination Matching Attached Screenshot -->
+            <div class="table-card-pagination">
+              <div class="pagination-left">
+                <span>Items per page:</span>
+                <select id="ro-items-per-page" class="pagination-select" onchange="if(window.changeROPageSize) window.changeROPageSize(this.value)">
+                  <option value="10" selected>10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+
+              <div class="pagination-center" id="ro-pagination-info">
+                1 - 10 of 392
+              </div>
+
+              <div class="pagination-controls" id="ro-pagination-btns">
+                <!-- Pagination buttons inserted dynamically -->
+              </div>
+
+              <div class="pagination-right">
+                <span>Go to page:</span>
+                <input type="number" id="ro-goto-page" class="goto-input" value="1" min="1" onchange="if(window.goToROPage) window.goToROPage(this.value)">
               </div>
             </div>
           </div>
         </div>
+
+        
 
         <!-- TAB 6: MAPPINGS -->
         <div class="tab-panel" id="tab-mapping">
@@ -1739,10 +1804,21 @@
         item.classList.remove('active');
       });
       
-      // Set active based on the item's data-tab attribute
-      const activeItem = Array.from(menuItems).find(item => item.dataset.tab === targetTabId);
-      if (activeItem) activeItem.classList.add('active');
+      // Set active based on the item's data-tab attribute or onclick
+      const activeItem = Array.from(menuItems).find(item => item.dataset.tab === targetTabId || item.getAttribute('onclick')?.includes(targetTabId));
+      if (activeItem) {
+        activeItem.classList.add('active');
+        const titleSpan = activeItem.querySelector('span');
+        const portalTitle = document.getElementById('portal-tab-title');
+        if (portalTitle && titleSpan) {
+          portalTitle.textContent = titleSpan.textContent.toUpperCase();
+        }
+      }
       if (window.uiSetPageTitle) window.uiSetPageTitle(targetTabId, activeItem);
+
+      if (targetTabId === 'tab-ro-explorer' && window.renderROExplorerPage) {
+        window.renderROExplorerPage();
+      }
 
       if (targetTabId === 'tab-day-monitoring' && window.renderDayMonitoringTable) {
         window.renderDayMonitoringTable();
