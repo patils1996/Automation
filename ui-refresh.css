@@ -2249,3 +2249,301 @@ aside.bpcl-categorized-sidebar .menu-item.active::before {
   color: #0f172a !important;
   font-weight: 700 !important;
 }
+
+
+/* MOBILE & RESPONSIVE PERFECTION FOR APPLICATION (< 900px, < 768px, < 480px) */
+
+/* 1. Mobile Top Bar: hidden on desktop, active on mobile */
+.mobile-top-bar {
+  display: none !important;
+}
+
+@media (max-width: 899px) {
+  body {
+    flex-direction: column !important;
+    overflow-x: hidden !important;
+  }
+
+  .mobile-top-bar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    height: 48px !important;
+    min-height: 48px !important;
+    background: #01204c !important;
+    padding: 0 12px !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+  }
+
+  .btn-mobile-menu {
+    background: transparent !important;
+    border: none !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+    padding: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 4px !important;
+  }
+
+  .btn-mobile-menu:active {
+    background: rgba(255, 255, 255, 0.15) !important;
+  }
+
+  .mobile-bar-brand {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  .mobile-brand-title {
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    color: #ffffff !important;
+    letter-spacing: 0.02em !important;
+    line-height: 1.1 !important;
+  }
+
+  .mobile-brand-sub {
+    font-size: 9.5px !important;
+    font-weight: 500 !important;
+    color: #e6be42 !important;
+    letter-spacing: 0.03em !important;
+  }
+
+  .mobile-bar-actions {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .mobile-action-icon-btn {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+  }
+
+  .mobile-action-icon-btn.mobile-sync-btn {
+    background: rgba(16, 185, 129, 0.15) !important;
+    border-color: rgba(16, 185, 129, 0.4) !important;
+  }
+
+  /* 2. Sidebar as Off-Canvas Drawer on Mobile */
+  aside.bpcl-categorized-sidebar,
+  .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 250px !important;
+    min-width: 250px !important;
+    max-width: 250px !important;
+    height: 100vh !important;
+    z-index: 1000 !important;
+    transform: translateX(-100%) !important;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  body.sidebar-open aside.bpcl-categorized-sidebar,
+  body.sidebar-open .sidebar {
+    transform: translateX(0) !important;
+  }
+
+  /* Backdrop */
+  .sidebar-backdrop {
+    display: none !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(0, 0, 0, 0.55) !important;
+    backdrop-filter: blur(2px) !important;
+    z-index: 999 !important;
+    opacity: 0 !important;
+    transition: opacity 0.25s ease !important;
+    pointer-events: none !important;
+  }
+
+  body.sidebar-open .sidebar-backdrop {
+    display: block !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+
+  /* 3. Main Content & Paddings */
+  .app-container {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  main {
+    padding: 10px 10px 32px 10px !important;
+    overflow-x: hidden !important;
+  }
+
+  /* 4. KPI Cards Responsive Grid */
+  .kpi-row-8 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .kpi-card-v2 {
+    padding: 8px 10px !important;
+    min-height: 56px !important;
+  }
+
+  .kpi-v2-label {
+    font-size: 9.5px !important;
+  }
+
+  .kpi-v2-value {
+    font-size: 1.1rem !important;
+  }
+
+  /* 5. Dashboard Grid: Stack Vertically */
+  .overview-body-container {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .overview-main-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  .panel-card {
+    padding: 12px !important;
+  }
+
+  .chart-canvas-container {
+    height: 220px !important;
+  }
+
+  /* Donut chart responsive layout */
+  .donut-chart-flex {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 14px !important;
+  }
+
+  .donut-chart-wrapper {
+    width: 170px !important;
+    height: 170px !important;
+    max-width: 100% !important;
+  }
+
+  .donut-legend-list {
+    width: 100% !important;
+    max-width: 280px !important;
+  }
+
+  /* 6. Filter Cards & Pills */
+  .overview-right-col {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .filter-pill {
+    padding: 4px 10px !important;
+    font-size: 11px !important;
+  }
+
+  /* 7. Tables Responsive (RO Explorer, Day Monitoring, etc.) */
+  .table-card {
+    padding: 10px !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+  }
+
+  .table-card-header {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+
+  .table-card-header h3 {
+    font-size: 1rem !important;
+  }
+
+  .search-filter-controls {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .search-input,
+  .filter-select {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 38px !important;
+    font-size: 12px !important;
+  }
+
+  .table-responsive-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 6px !important;
+  }
+
+  .data-table {
+    min-width: 650px !important;
+    font-size: 11.5px !important;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 8px 10px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Pagination Bar on Mobile */
+  .pagination-container {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 10px 0 !important;
+  }
+}
+
+/* Specific small phones (< 560px) */
+@media (max-width: 560px) {
+  .kpi-row-8 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .kpi-card-v2 {
+    padding: 10px 12px !important;
+    min-height: 60px !important;
+  }
+
+  .kpi-v2-label {
+    font-size: 10px !important;
+  }
+
+  .kpi-v2-value {
+    font-size: 1.2rem !important;
+  }
+
+  .chart-canvas-container {
+    height: 200px !important;
+  }
+}

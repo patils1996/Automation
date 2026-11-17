@@ -125,9 +125,26 @@
   <!-- App Main Container -->
   <div class="app-container">
 
-    <!-- Header -->
-        <!-- Top Navbar - Attached Style UI -->
-        <!-- Top Yellow Accent Strip Matching Attached Screenshot -->
+    <!-- Mobile Top Navigation Bar (Visible only on mobile/tablet) -->
+    <header class="mobile-top-bar" id="mobile-top-bar">
+      <button id="btn-menu-toggle" class="btn-mobile-menu" aria-label="Toggle navigation menu">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </button>
+      <div class="mobile-bar-brand">
+        <span class="mobile-brand-title">BPCL Belgaum</span>
+        <span class="mobile-brand-sub">Automation Dashboard</span>
+      </div>
+      <div class="mobile-bar-actions">
+        <button class="mobile-action-icon-btn mobile-sync-btn" onclick="document.getElementById('btn-sync-sheet')?.click()" title="Sync Google Sheet">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#10b981" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+        </button>
+        <button class="mobile-action-icon-btn" onclick="document.getElementById('header-file-input')?.click()" title="Upload Excel / CSV">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#ffffff" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Top Yellow Accent Strip -->
     <div class="top-yellow-accent-strip"></div>
 
     <main>

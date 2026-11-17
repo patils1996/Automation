@@ -80,7 +80,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
     
     // Close sidebar when clicking any menu item on mobile
-    const menuItems = document.querySelectorAll('.sidebar-menu .menu-item');
+    const menuItems = document.querySelectorAll('.sidebar .menu-item');
     menuItems.forEach(item => {
       item.addEventListener('click', () => {
         document.body.classList.remove('sidebar-open');
