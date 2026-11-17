@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bpcl-dashboard-v21';
+const CACHE_NAME = 'bpcl-dashboard-v22';
 const ASSETS = [
   './',
   './index.html',
@@ -18,11 +18,17 @@ const ASSETS = [
   './sample_data.js',
   './xlsx.full.min.js',
   './chart.umd.min.js',
+  './bpcl_automation_logo.png',
+  './bpcl_automation_emblem.png',
+  './favicon-32x32.png',
+  './favicon.ico',
   './bpcl_emblem_official.png',
   './bpcl_logo_card.png',
   './sidebar_skyline.png',
   './icon-192.png',
   './icon-512.png',
+  './icon-maskable-192.png',
+  './icon-maskable-512.png',
   './apple-touch-icon.png'
 ];
 

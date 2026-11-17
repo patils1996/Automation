@@ -3024,3 +3024,69 @@ main {
     height: 210px !important;
   }
 }
+
+/* ==========================================================================
+   OFFICIAL BPCL AUTOMATION LOGO STYLING
+   ========================================================================== */
+.sidebar-brand-card {
+  padding: 10px 8px 8px 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: radial-gradient(circle at center, #011d45 0%, #000f24 100%) !important;
+  border-bottom: 1px solid rgba(230, 190, 66, 0.25) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+}
+
+.sidebar-brand-img {
+  width: 100% !important;
+  max-width: 148px !important;
+  height: auto !important;
+  max-height: 90px !important;
+  object-fit: contain !important;
+  display: block !important;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.45)) !important;
+  transition: transform 0.2s ease, filter 0.2s ease !important;
+}
+
+.sidebar-brand-img:hover {
+  transform: scale(1.02) !important;
+  filter: drop-shadow(0 4px 12px rgba(230, 190, 66, 0.35)) !important;
+}
+
+/* Mobile Top Bar Brand Layout with Logo */
+.mobile-bar-brand {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.mobile-brand-logo {
+  height: 34px !important;
+  width: auto !important;
+  max-width: 44px !important;
+  object-fit: contain !important;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5)) !important;
+}
+
+.mobile-brand-text {
+  display: flex !important;
+  flex-direction: column !important;
+  text-align: left !important;
+}
+
+/* Login Modal Logo Enhancement */
+.login-logo {
+  width: 170px !important;
+  max-width: 100% !important;
+  background: transparent !important;
+  border-radius: 12px !important;
+  padding: 0 !important;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.45)) !important;
+}
+
+/* PWA App Icon Wrapper */
+.pwa-app-icon-wrapper {
+  background: #000000 !important;
+  border-color: rgba(230, 190, 66, 0.35) !important;
+}
