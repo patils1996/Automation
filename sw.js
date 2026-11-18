@@ -1,9 +1,10 @@
-const CACHE_NAME = 'bpcl-dashboard-v22';
+const CACHE_NAME = 'bpcl-dashboard-v23';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './pwa-install.js',
+  './tank_stock.js',
   './styles.css',
   './ui-refresh.css',
   './ui-refresh.js',

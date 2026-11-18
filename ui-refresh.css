@@ -3090,3 +3090,457 @@ main {
   background: #000000 !important;
   border-color: rgba(230, 190, 66, 0.35) !important;
 }
+
+
+/* ==========================================================================
+   RO-WISE TANK STOCK MONITORING STYLING
+   ========================================================================== */
+#tab-tank-stock {
+  width: 100% !important;
+}
+
+.tank-stock-wrapper {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+}
+
+.tank-stock-header-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  padding: 16px 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+
+.ts-header-left h2 {
+  font-size: 1.25rem !important;
+  font-weight: 800 !important;
+  color: #01204c !important;
+  margin: 0 !important;
+}
+
+.ts-header-left p {
+  font-size: 12px !important;
+  color: #64748b !important;
+  margin: 3px 0 0 0 !important;
+}
+
+.ts-header-actions {
+  display: flex !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+.btn-ts {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 8px 14px !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  border: 1px solid #cbd5e1 !important;
+  background: #ffffff !important;
+  color: #1e293b !important;
+}
+
+.btn-ts:hover {
+  background: #f8fafc !important;
+  border-color: #94a3b8 !important;
+}
+
+.btn-ts-primary {
+  background: #01204c !important;
+  color: #ffffff !important;
+  border-color: #01204c !important;
+}
+
+.btn-ts-primary:hover {
+  background: #0a336e !important;
+  border-color: #0a336e !important;
+}
+
+.btn-ts-sync {
+  background: #ecfdf5 !important;
+  color: #059669 !important;
+  border-color: #a7f3d0 !important;
+}
+
+.btn-ts-sync:hover {
+  background: #d1fae5 !important;
+}
+
+.btn-ts-upload {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+}
+
+.btn-ts-back {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.ts-toolbar {
+  display: flex !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+}
+
+.ts-search-box {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  flex: 1 !important;
+  min-width: 240px !important;
+}
+
+.ts-search-box input {
+  border: none !important;
+  outline: none !important;
+  width: 100% !important;
+  font-size: 12.5px !important;
+  background: transparent !important;
+}
+
+.ts-toolbar select {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  font-size: 12px !important;
+  color: #334155 !important;
+  min-width: 150px !important;
+  outline: none !important;
+}
+
+.ts-statusline {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  font-size: 12px !important;
+  color: #64748b !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+  padding: 0 4px !important;
+}
+
+.ts-kpis {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+.ts-kpis .kpi {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+  padding: 12px 14px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+}
+
+.ts-kpis .klabel {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  color: #64748b !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+.ts-kpis .value {
+  font-size: 1.4rem !important;
+  font-weight: 800 !important;
+  color: #01204c !important;
+  margin-top: 4px !important;
+}
+
+.ts-kpis .sub {
+  font-size: 10.5px !important;
+  color: #94a3b8 !important;
+  margin-top: 2px !important;
+}
+
+.ts-panel {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03) !important;
+  overflow: hidden !important;
+}
+
+.ts-panelhead {
+  padding: 14px 18px !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.ts-panelhead h2 {
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  color: #01204c !important;
+  margin: 0 !important;
+  letter-spacing: 0.03em !important;
+}
+
+.ts-panelhead small {
+  color: #64748b !important;
+  font-weight: 600 !important;
+}
+
+.ts-tablewrap {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.ro-summary-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  font-size: 12px !important;
+  min-width: 900px !important;
+}
+
+.ro-summary-table th {
+  background: #f8fafc !important;
+  color: #475569 !important;
+  font-weight: 700 !important;
+  padding: 10px 14px !important;
+  text-align: left !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  white-space: nowrap !important;
+}
+
+.ro-summary-table td {
+  padding: 10px 14px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  white-space: nowrap !important;
+}
+
+.ro-summary-table tbody tr:hover {
+  background: #f8fafc !important;
+  cursor: pointer !important;
+}
+
+.ts-detailhead {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  padding: 16px 20px !important;
+}
+
+.ts-detailhead h2 {
+  font-size: 1.25rem !important;
+  font-weight: 800 !important;
+  color: #01204c !important;
+  margin: 0 !important;
+}
+
+.ts-detailhead p {
+  font-size: 12px !important;
+  color: #64748b !important;
+  margin: 3px 0 0 0 !important;
+}
+
+.ts-summarygrid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.ts-summarybox {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+.ts-summarybox h3 {
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  padding: 12px 14px !important;
+  margin: 0 !important;
+  background: #f8fafc !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.ts-summarybox table {
+  width: 100% !important;
+  font-size: 12px !important;
+}
+
+.ts-summarybox th, .ts-summarybox td {
+  padding: 8px 12px !important;
+}
+
+.ts-note {
+  background: #eff6ff !important;
+  border: 1px solid #bfdbfe !important;
+  color: #1e40af !important;
+  padding: 10px 14px !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+}
+
+.ts-tankgrid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)) !important;
+  gap: 14px !important;
+}
+
+.tank {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 14px !important;
+  padding: 14px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  cursor: pointer !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+.tank:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+.tanktop {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.tanktitle {
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  color: #01204c !important;
+}
+
+.tankmeta {
+  font-size: 11px !important;
+  color: #64748b !important;
+  margin: 6px 0 !important;
+  display: flex !important;
+  justify-content: space-between !important;
+}
+
+.gauge {
+  width: 90px !important;
+  height: 90px !important;
+  border-radius: 50% !important;
+  margin: 16px auto !important;
+  display: grid !important;
+  place-items: center !important;
+  background: conic-gradient(var(--gauge, #16a34a) calc(var(--pct, 0) * 1%), #e2e8f0 0) !important;
+  position: relative !important;
+}
+
+.gauge span {
+  width: 68px !important;
+  height: 68px !important;
+  border-radius: 50% !important;
+  background: #ffffff !important;
+  display: grid !important;
+  place-items: center !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.06) !important;
+}
+
+.tankstats {
+  background: #f8fafc !important;
+  border-radius: 8px !important;
+  padding: 10px 12px !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px !important;
+  margin-top: 10px !important;
+}
+
+.statlabel {
+  font-size: 10px !important;
+  color: #64748b !important;
+}
+
+.statvalue {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+}
+
+.tankbottom {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  border-top: 1px solid #f1f5f9 !important;
+  padding-top: 10px !important;
+  margin-top: 10px !important;
+}
+
+.ts-hourly {
+  padding: 14px 18px !important;
+}
+
+.ts-chart {
+  height: 180px !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  gap: 6px !important;
+  border-bottom: 1px solid #cbd5e1 !important;
+  padding: 10px 0 !important;
+  overflow-x: auto !important;
+}
+
+.barwrap {
+  height: 100% !important;
+  min-width: 24px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.barwrap small {
+  font-size: 8px !important;
+  color: #64748b !important;
+}
+
+.barwrap label {
+  font-size: 8.5px !important;
+  color: #64748b !important;
+  white-space: nowrap !important;
+}
+
+.bar {
+  width: 14px !important;
+  border-radius: 3px 3px 0 0 !important;
+  transition: height 0.3s ease !important;
+}
+
+@media (max-width: 900px) {
+  .ts-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .ts-summarygrid {
+    grid-template-columns: 1fr !important;
+  }
+}
