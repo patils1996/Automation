@@ -1228,10 +1228,16 @@
         </section>
         <section class="panel">
           <div class="panelhead">
-            <h2>RETAIL OUTLET STOCK SUMMARY</h2>
-            <small id="rowCount">0 outlets</small>
+            <div>
+              <h2>RETAIL OUTLET STOCK SUMMARY</h2>
+              <small id="rowCount">0 outlets</small>
+            </div>
+            <div class="tank-view-toggle">
+              <button class="view-btn active" id="viewCardsBtn" type="button">📱 Cards</button>
+              <button class="view-btn" id="viewTableBtn" type="button">📋 Table</button>
+            </div>
           </div>
-          <div class="tablewrap">
+          <div class="tablewrap" id="roTableWrap">
             <table class="ro-summary-table">
               <thead>
                 <tr>
@@ -1251,6 +1257,7 @@
               </tbody>
             </table>
           </div>
+          <div class="ro-cards-wrap" id="roCardsWrap"></div>
         </section>
       </div>
       <div id="detailView" class="hidden">

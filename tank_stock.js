@@ -362,7 +362,8 @@
       if (!el) return;
       const old = el.value;
       const vals = [...new Set(allRO.map(r => r[k]).filter(Boolean))].sort();
-      el.innerHTML = `<option value="">All ${k.charAt(0).toUpperCase() + k.slice(1)}s</option>` + vals.map(v => `<option value="${esc(v)}"${v === old ? ' selected' : ''}>${esc(v)}</option>`).join('');
+      const label = { territory: 'Territories', area: 'Sales Areas', vendor: 'RA Vendors', state: 'States' }[id] || (k.charAt(0).toUpperCase() + k.slice(1) + 's');
+      el.innerHTML = `<option value="">All ${label}</option>` + vals.map(v => `<option value="${esc(v)}"${v === old ? ' selected' : ''}>${esc(v)}</option>`).join('');
     });
   }
 
@@ -390,18 +391,76 @@
     drawROTable();
   }
 
+  let currentViewMode = (typeof window !== 'undefined' && window.innerWidth <= 768) ? 'cards' : 'table';
+
+  function setViewMode(mode) {
+    currentViewMode = mode;
+    const tab = $('tab-tank-stock') || document.querySelector('.tank-stock-standalone') || document.body;
+    const cardsBtn = $('viewCardsBtn');
+    const tableBtn = $('viewTableBtn');
+    if (mode === 'cards') {
+      tab.classList.remove('mode-table');
+      tab.classList.add('mode-cards');
+      if (cardsBtn) cardsBtn.classList.add('active');
+      if (tableBtn) tableBtn.classList.remove('active');
+    } else {
+      tab.classList.remove('mode-cards');
+      tab.classList.add('mode-table');
+      if (tableBtn) tableBtn.classList.add('active');
+      if (cardsBtn) cardsBtn.classList.remove('active');
+    }
+  }
+
   function drawROTable() {
     const searchEl = $('search'), terrEl = $('territory'), areaEl = $('area'), vendEl = $('vendor'), stateEl = $('state');
     if (!searchEl) return;
     const q = key(searchEl.value), territory = terrEl ? terrEl.value : '', area = areaEl ? areaEl.value : '', vendor = vendEl ? vendEl.value : '', state = stateEl ? stateEl.value : '';
     let rows = allRO.filter(r => (!q || r.id.includes(q) || key(r.name).includes(q)) && (!territory || r.territory === territory) && (!area || r.area === area) && (!vendor || r.vendor === vendor) && (!state || r.state === state));
     if ($('rowCount')) $('rowCount').textContent = `${rows.length.toLocaleString()} outlets`;
+
     const tbody = $('roTable');
-    if (!tbody) return;
-    tbody.innerHTML = rows.map(r => {
-      let st = r.offline === 0 && r.online > 0 ? 'ONLINE' : (r.online === 0 ? 'OFFLINE' : 'PARTIAL');
-      return `<tr onclick="openRO('${r.id}')"><td>${r.id}</td><td class="ro-name">${esc(r.name)}</td><td>${esc(r.territory)} <span class="muted">/ ${esc(r.area)}</span></td><td>${esc(r.vendor)}</td><td class="num product-ebms">${fmt(r.ebms, 2)}</td><td class="num product-hsd">${fmt(r.hsd, 2)}</td><td class="num"><b>${fmt(r.total, 2)}</b></td><td class="num">${r.tanks.length}</td><td><span class="pill ${st === 'OFFLINE' ? 'off' : st === 'ONLINE' ? '' : 'partial'}">${st}</span></td></tr>`;
-    }).join('') || '<tr><td colspan="9" class="empty">No matching retail outlets found.</td></tr>';
+    if (tbody) {
+      tbody.innerHTML = rows.map(r => {
+        let st = r.offline === 0 && r.online > 0 ? 'ONLINE' : (r.online === 0 ? 'OFFLINE' : 'PARTIAL');
+        return `<tr onclick="openRO('${r.id}')"><td>${r.id}</td><td class="ro-name">${esc(r.name)}</td><td>${esc(r.territory)} <span class="muted">/ ${esc(r.area)}</span></td><td>${esc(r.vendor)}</td><td class="num product-ebms">${fmt(r.ebms, 2)}</td><td class="num product-hsd">${fmt(r.hsd, 2)}</td><td class="num"><b>${fmt(r.total, 2)}</b></td><td class="num">${r.tanks.length}</td><td><span class="pill ${st === 'OFFLINE' ? 'off' : st === 'ONLINE' ? '' : 'partial'}">${st}</span></td></tr>`;
+      }).join('') || '<tr><td colspan="9" class="empty">No matching retail outlets found.</td></tr>';
+    }
+
+    const cardWrap = $('roCardsWrap');
+    if (cardWrap) {
+      cardWrap.innerHTML = rows.map(r => {
+        let st = r.offline === 0 && r.online > 0 ? 'ONLINE' : (r.online === 0 ? 'OFFLINE' : 'PARTIAL');
+        return `
+          <div class="ro-card" onclick="openRO('${r.id}')">
+            <div class="ro-card-top">
+              <div>
+                <span class="ro-card-id">${r.id}</span>
+                <h3 class="ro-card-name">${esc(r.name)}</h3>
+                <div class="ro-card-meta">${esc(r.area || r.territory)} • ${esc(r.vendor)}</div>
+              </div>
+              <span class="pill ${st === 'OFFLINE' ? 'off' : st === 'ONLINE' ? '' : 'partial'}">${st}</span>
+            </div>
+            <div class="ro-card-grid">
+              <div>
+                <div class="col-label">EBMS</div>
+                <div class="col-val product-ebms">${fmt(r.ebms, 2)}</div>
+              </div>
+              <div>
+                <div class="col-label">HSD</div>
+                <div class="col-val product-hsd">${fmt(r.hsd, 2)}</div>
+              </div>
+              <div>
+                <div class="col-label">Total</div>
+                <div class="col-val"><b>${fmt(r.total, 2)}</b></div>
+              </div>
+              <div style="text-align:right">
+                <span style="font-size:11px; font-weight:700; color:#0284c7; background:#e0f2fe; padding:4px 8px; border-radius:12px;">${r.tanks.length} Tanks ›</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('') || '<div class="empty">No matching retail outlets found.</div>';
+    }
   }
 
   window.openRO = function(id) {
@@ -410,6 +469,7 @@
     if (!ro) return;
     $('dashboardView')?.classList.add('hidden');
     $('detailView')?.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     if ($('roTitle')) $('roTitle').textContent = `${ro.name} (${ro.id})`;
     if ($('roSubtitle')) $('roSubtitle').textContent = `${ro.territory} • ${ro.area} • RA Vendor: ${ro.vendor || '—'} • State: ${ro.state || '—'}`;
     let prods = ['EBMS', 'HSD'];
@@ -458,6 +518,7 @@
     selectedRO = null;
     $('detailView')?.classList.add('hidden');
     $('dashboardView')?.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   // Pre-load local files if present
@@ -575,6 +636,18 @@
         });
       };
     }
+
+    const viewCardsBtn = $('viewCardsBtn');
+    const viewTableBtn = $('viewTableBtn');
+    if (viewCardsBtn) viewCardsBtn.onclick = () => {
+      sessionStorage.setItem('bpcl_tank_view_manual', '1');
+      setViewMode('cards');
+    };
+    if (viewTableBtn) viewTableBtn.onclick = () => {
+      sessionStorage.setItem('bpcl_tank_view_manual', '1');
+      setViewMode('table');
+    };
+    setViewMode((typeof window !== 'undefined' && window.innerWidth <= 768) ? 'cards' : 'table');
 
     ['search', 'territory', 'area', 'vendor', 'state'].forEach(id => {
       const el = $(id);
