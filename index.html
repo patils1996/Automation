@@ -1189,127 +1189,107 @@
         
     <!-- TAB: RO-WISE TANK STOCK MONITORING (GOOGLE DRIVE SYNC) -->
     <div class="tab-panel" id="tab-tank-stock">
-      <div class="tank-stock-wrapper">
-        <!-- Top Toolbar -->
-        <div class="tank-stock-header-card">
-          <div class="ts-header-left">
-            <h2>RO-Wise Tank Stock Monitoring</h2>
-            <p>Real-time Tank Stock, Onboarded Tankage, Ullage & 24-Hour Trends · Auto-synced with Google Drive</p>
-          </div>
-          <div class="ts-header-actions">
-            <button class="btn-ts btn-ts-primary" id="ts-folder-btn" title="Connect local or synced Google Drive folder">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-              <span>Connect Drive Folder</span>
-            </button>
-            <button class="btn-ts btn-ts-sync" id="ts-refresh-btn" title="Refresh stock data">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
-              <span>Sync Stock</span>
-            </button>
-            <button class="btn-ts btn-ts-upload" id="ts-upload-btn" title="Upload Stock hourly, Last updated stock, Onboarded tanks">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-              <span>Upload Workbooks</span>
-            </button>
-            <input id="ts-file-input" type="file" accept=".xlsx,.xls" multiple style="display: none;">
-          </div>
-        </div>
-
-        <!-- Dashboard View (RO List) -->
-        <div id="ts-dashboard-view">
-          <!-- Filter Toolbar -->
-          <div class="ts-toolbar">
-            <div class="ts-search-box">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#64748b" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-              <input id="ts-search" placeholder="Search RO ID or Retail Outlet name...">
-            </div>
-            <select id="ts-territory"><option value="">All Territories</option></select>
-            <select id="ts-area"><option value="">All Sales Areas</option></select>
-            <select id="ts-vendor"><option value="">All RA Vendors</option></select>
-            <select id="ts-state"><option value="">All States</option></select>
-          </div>
-
-          <!-- Status Bar -->
-          <div class="ts-statusline">
-            <span id="ts-data-status"><span class="pill">● Google Drive Ready</span> Connecting to stock workbooks...</span>
-            <span id="ts-updated-at"></span>
-          </div>
-
-          <!-- KPIs -->
-          <section class="ts-kpis" id="ts-kpis">
-            <div class="kpi"><div class="klabel">RETAIL OUTLETS</div><div class="value">—</div></div>
-            <div class="kpi"><div class="klabel">ONBOARDED TANKS</div><div class="value">—</div></div>
-            <div class="kpi"><div class="klabel">ONLINE TANKS</div><div class="value">—</div></div>
-            <div class="kpi"><div class="klabel">OFFLINE TANKS</div><div class="value">—</div></div>
-            <div class="kpi"><div class="klabel">TOTAL STOCK (KL)</div><div class="value">—</div></div>
-          </section>
-
-          <!-- RO Table Panel -->
-          <section class="ts-panel">
-            <div class="ts-panelhead">
-              <h2>RETAIL OUTLET STOCK SUMMARY</h2>
-              <small id="ts-row-count">Loading...</small>
-            </div>
-            <div class="ts-tablewrap">
-              <table class="ro-summary-table">
-                <thead>
-                  <tr>
-                    <th>RO ID</th>
-                    <th>Retail Outlet</th>
-                    <th>Territory / Sales Area</th>
-                    <th>RA Vendor</th>
-                    <th class="num">EBMS Stock (KL)</th>
-                    <th class="num">HSD Stock (KL)</th>
-                    <th class="num">Total Stock (KL)</th>
-                    <th class="num">Tanks</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody id="ts-ro-table">
-                  <tr><td colspan="9" class="empty">Loading stock data...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </section>
-        </div>
-
-        <!-- Detail View (Tanks & Gauges) -->
-        <div id="ts-detail-view" class="hidden">
-          <div class="ts-detailhead">
-            <div>
-              <h2 id="ts-ro-title">Retail Outlet</h2>
-              <p id="ts-ro-subtitle"></p>
-            </div>
-            <button class="btn-ts btn-ts-back" id="ts-back-btn">
-              ← Back to all ROs
-            </button>
-          </div>
-
-          <!-- Product Capacity / Stock / Ullage Summaries -->
-          <div class="ts-summarygrid" id="ts-product-summaries"></div>
-
-          <!-- Note -->
-          <div class="ts-note">
-            ⓘ Click any tank card below to view its full 24-hour hourly stock trend from 12 AM to 11 PM.
-          </div>
-
-          <!-- Tank Cards with Circular Gauges -->
-          <div class="ts-tankgrid" id="ts-tank-cards"></div>
-
-          <!-- 24-Hour Hourly Trend Chart -->
-          <section class="ts-panel hidden" id="ts-hourly-panel" style="margin-top: 20px;">
-            <div class="ts-panelhead">
-              <h2 id="ts-hourly-title">HOURLY STOCK TREND</h2>
-              <button class="btn-ts btn-ts-back" id="ts-close-hourly">Close</button>
-            </div>
-            <div class="ts-hourly">
-              <div class="small" id="ts-hourly-subtitle" style="color: #64748b; margin-bottom: 12px; font-size: 12px;"></div>
-              <div class="ts-chart" id="ts-hourly-chart"></div>
-            </div>
-          </section>
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">BPCL</div>
+        <div>
+          <h1>Tank Stock Monitoring</h1>
+          <p>Automation • Southern Region • Belgaum Territory</p>
         </div>
       </div>
+      <div class="actions">
+        <a href="tank_stock_dashboard.html" target="_blank" class="btn" style="text-decoration: none; color: #168cf0; background: #eaf4ff; border-color: #c8e0ff;" title="Open standalone dashboard in new browser window">↗ Open Standalone</a>
+        <button class="btn" id="folderBtn">📁 Select data folder</button>
+        <button class="btn" id="refreshBtn">↻ Refresh stock</button>
+        <button class="btn" id="mappingBtn">↻ Update tank mapping</button>
+        <button class="btn primary" id="uploadBtn">Upload Excel files</button>
+        <input id="tankStockFileInput" type="file" accept=".xlsx,.xls" multiple hidden>
+      </div>
+    </header>
+    <div class="tank-stock-main">
+      <div id="dashboardView">
+        <div class="toolbar">
+          <input id="search" placeholder="Search RO ID or Retail Outlet name...">
+          <select id="territory"><option value="">All Territories</option></select>
+          <select id="area"><option value="">All Sales Areas</option></select>
+          <select id="vendor"><option value="">All RA Vendors</option></select>
+          <select id="state"><option value="">All States</option></select>
+        </div>
+        <div class="statusline">
+          <span id="dataStatus">No Excel data loaded. Select the folder containing the three workbooks.</span>
+          <span id="updatedAt"></span>
+        </div>
+        <section class="kpis" id="kpis">
+          <div class="kpi"><div class="klabel">RETAIL OUTLETS</div><div class="value">—</div></div>
+          <div class="kpi"><div class="klabel">ONBOARDED TANKS</div><div class="value">—</div></div>
+          <div class="kpi"><div class="klabel">ONLINE TANKS</div><div class="value">—</div></div>
+          <div class="kpi"><div class="klabel">OFFLINE TANKS</div><div class="value">—</div></div>
+          <div class="kpi"><div class="klabel">LATEST STOCK RECORDS</div><div class="value">—</div></div>
+        </section>
+        <section class="panel">
+          <div class="panelhead">
+            <h2>RETAIL OUTLET STOCK SUMMARY</h2>
+            <small id="rowCount">0 outlets</small>
+          </div>
+          <div class="tablewrap">
+            <table class="ro-summary-table">
+              <thead>
+                <tr>
+                  <th>RO ID</th>
+                  <th>Retail Outlet</th>
+                  <th>Territory / Sales Area</th>
+                  <th>RA Vendor</th>
+                  <th class="num">EBMS Stock (KL)</th>
+                  <th class="num">HSD Stock (KL)</th>
+                  <th class="num">Total Stock (KL)</th>
+                  <th class="num">Tanks</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="roTable">
+                <tr><td colspan="9" class="empty">Select the Excel data folder to load records.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+      <div id="detailView" class="hidden">
+        <div class="detailhead">
+          <div>
+            <h2 id="roTitle">Retail Outlet</h2>
+            <p id="roSubtitle"></p>
+          </div>
+          <button class="btn" id="backBtn">← Back to all ROs</button>
+        </div>
+        <div class="summarygrid" id="productSummaries"></div>
+        <div class="note">ⓘ Click any tank card to view its hourly stock history. Stock levels are based on the latest available source records.</div>
+        <div class="tankgrid" id="tankCards"></div>
+        <section class="panel hidden" id="hourlyPanel">
+          <div class="panelhead">
+            <h2 id="hourlyTitle">HOURLY STOCK TREND</h2>
+            <button class="btn" id="closeHourly">Close</button>
+          </div>
+          <div class="hourly">
+            <div class="small" id="hourlySubtitle"></div>
+            <div class="chart" id="hourlyChart"></div>
+          </div>
+        </section>
+      </div>
+      <div class="footer">BPCL Automation • Tank Stock Monitoring Dashboard • Data sourced from uploaded Excel workbooks</div>
     </div>
-
-<div class="tab-panel" id="tab-sales-area">
+    <div id="tankModal" class="modalback hidden">
+      <div class="modal">
+        <button class="btn modalclose" id="modalClose">✕</button>
+        <h3>Automatic folder loading</h3>
+        <p>Choose the folder that contains these exact files: <b>Stock hourly.xlsx</b>, <b>Onboarded tanks.xlsx</b> and <b>Last updated stock.xlsx</b>.</p>
+        <p>Chrome will ask permission to read the folder. The dashboard will remember the folder where browser permissions allow and check for updated files periodically while this page remains open.</p>
+        <p class="small">Keep all three Excel files together in the same folder. For best results, run this page in Google Chrome or Microsoft Edge.</p>
+        <button class="btn primary" id="chooseFolderNow">Choose folder</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="tab-panel" id="tab-sales-area">
           <div class="table-card">
             <div class="table-card-header">
               <h3>Sales Area Wise Performance</h3>
