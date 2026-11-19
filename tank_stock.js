@@ -1,16 +1,29 @@
 /* ==========================================================================
    BPCL RO-WISE TANK STOCK MONITORING & GOOGLE DRIVE SYNC ENGINE
-   Exact Implementation matching BPCL_Tank_Stock_Dashboard (2).html
+   Target Google Drive Folder: 17C1s0lqJ0jCZqc_xmRB2H_YGOro1pUk4
+   Target Local Stream Path: G:\My Drive\TL-PATIL- 2026\Technology\Test tanks status
    ========================================================================== */
 
 (function() {
   'use strict';
+
+  const GDRIVE_CONFIG = {
+    url: 'https://drive.google.com/open?id=17C1s0lqJ0jCZqc_xmRB2H_YGOro1pUk4&usp=drive_fs',
+    folderId: '17C1s0lqJ0jCZqc_xmRB2H_YGOro1pUk4',
+    folderName: 'Test tanks status',
+    localPathWindows: 'G:\\My Drive\\TL-PATIL- 2026\\Technology\\Test tanks status',
+    requiredFiles: ['Stock hourly.xlsx', 'Last updated stock.xlsx', 'Onboarded tanks.xlsx']
+  };
 
   const FILES = {
     'Stock hourly.xlsx': 'hourly',
     'Onboarded tanks.xlsx': 'onboarded',
     'Last updated stock.xlsx': 'latest'
   };
+
+  const IDB_NAME = 'bpcl_tank_stock_store';
+  const IDB_STORE = 'handles';
+  const IDB_KEY = 'gdrive_folder_handle';
 
   let data = { hourly: [], onboarded: [], latest: [] };
   let folderHandle = null;
@@ -32,6 +45,87 @@
   const pct = v => v == null ? '—' : fmt(v * 100, 1) + '%';
   function esc(s) {
     return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  // ---- IndexedDB Persistence for DirectoryHandle ----
+  function getStoredFolderHandle() {
+    return new Promise(resolve => {
+      try {
+        const req = indexedDB.open(IDB_NAME, 1);
+        req.onupgradeneeded = e => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
+        };
+        req.onsuccess = e => {
+          const db = e.target.result;
+          const tx = db.transaction(IDB_STORE, 'readonly');
+          const st = tx.objectStore(IDB_STORE);
+          const getReq = st.get(IDB_KEY);
+          getReq.onsuccess = () => resolve(getReq.result || null);
+          getReq.onerror = () => resolve(null);
+        };
+        req.onerror = () => resolve(null);
+      } catch (e) {
+        resolve(null);
+      }
+    });
+  }
+
+  function setStoredFolderHandle(handle) {
+    return new Promise(resolve => {
+      try {
+        const req = indexedDB.open(IDB_NAME, 1);
+        req.onupgradeneeded = e => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(IDB_STORE)) db.createObjectStore(IDB_STORE);
+        };
+        req.onsuccess = e => {
+          const db = e.target.result;
+          const tx = db.transaction(IDB_STORE, 'readwrite');
+          tx.objectStore(IDB_STORE).put(handle, IDB_KEY);
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = () => resolve(false);
+        };
+        req.onerror = () => resolve(false);
+      } catch (e) {
+        resolve(false);
+      }
+    });
+  }
+
+  async function verifyPermission(handle, readWrite = false) {
+    if (!handle) return false;
+    const opts = {};
+    if (readWrite) opts.mode = 'readwrite';
+    try {
+      if ((await handle.queryPermission(opts)) === 'granted') return true;
+      if ((await handle.requestPermission(opts)) === 'granted') return true;
+    } catch (e) {
+      console.warn('Handle permission prompt:', e);
+    }
+    return false;
+  }
+
+  // Recursive search if parent directory is selected (e.g. G:\My Drive)
+  async function resolveTargetFolder(dirHandle, depth = 0) {
+    if (!dirHandle || depth > 3) return null;
+    try {
+      await dirHandle.getFileHandle('Stock hourly.xlsx');
+      return dirHandle;
+    } catch (e) {}
+
+    try {
+      for await (const entry of dirHandle.values()) {
+        if (entry.kind === 'directory') {
+          const n = entry.name.toLowerCase();
+          if (n.includes('tank') || n.includes('technology') || n.includes('tl-patil') || depth < 2) {
+            const found = await resolveTargetFolder(entry, depth + 1);
+            if (found) return found;
+          }
+        }
+      }
+    } catch (e) {}
+    return null;
   }
 
   function parseWorkbook(file, type) {
@@ -78,13 +172,14 @@
 
       renderDashboard();
       if ($('dataStatus')) {
-        $('dataStatus').textContent = `Loaded ${data.hourly.length.toLocaleString()} hourly rows • ${data.onboarded.length.toLocaleString()} fixed tank mappings • ${data.latest.length.toLocaleString()} latest stock rows`;
+        const driveLabel = folderHandle ? `🟢 Google Drive: <b>${esc(folderHandle.name || GDRIVE_CONFIG.folderName)}</b> • ` : '';
+        $('dataStatus').innerHTML = `${driveLabel}Loaded <b>${data.hourly.length.toLocaleString()}</b> hourly rows • <b>${data.onboarded.length.toLocaleString()}</b> fixed tank mappings • <b>${data.latest.length.toLocaleString()}</b> latest stock records`;
       }
       if ($('updatedAt')) {
-        $('updatedAt').textContent = 'Stock refreshed at ' + new Date().toLocaleString() + (forceMapping ? ' • Tank mapping updated' : '');
+        $('updatedAt').textContent = 'Stock refreshed at ' + new Date().toLocaleTimeString() + (forceMapping ? ' • Tank mapping updated' : '');
       }
       if (window.showToast) {
-        window.showToast('Tank stock updated successfully!', 'success');
+        window.showToast('Tank stock updated successfully from Google Drive!', 'success');
       }
     } catch (e) {
       if ($('dataStatus')) $('dataStatus').innerHTML = '<span class="error">' + e.message + '</span>';
@@ -93,19 +188,77 @@
     }
   }
 
+  function updateDriveStatusUI(connected = false, folderName = GDRIVE_CONFIG.folderName) {
+    const folderBtn = $('folderBtn');
+    const badge = $('gdriveStatusBadge');
+    if (folderBtn) {
+      if (connected) {
+        folderBtn.innerHTML = `🟢 Google Drive: <b>${esc(folderName)}</b>`;
+        folderBtn.title = `Connected to Google Drive: ${GDRIVE_CONFIG.folderId}\nClick to re-sync or change folder`;
+        folderBtn.style.borderColor = '#168cf0';
+        folderBtn.style.background = '#eaf4ff';
+        folderBtn.style.color = '#0284c7';
+      } else {
+        folderBtn.innerHTML = `📁 Connect Google Drive Folder`;
+        folderBtn.title = `Click to connect Google Drive: ${GDRIVE_CONFIG.folderName} (${GDRIVE_CONFIG.folderId})`;
+        folderBtn.style.borderColor = '';
+        folderBtn.style.background = '';
+        folderBtn.style.color = '';
+      }
+    }
+    if (badge) {
+      if (connected) {
+        badge.textContent = '🟢 Connected (Auto-sync 30s)';
+        badge.className = 'pill';
+        badge.style.background = '#e8f9ee';
+        badge.style.color = '#16853c';
+      } else {
+        badge.textContent = '🟡 Not connected';
+        badge.className = 'pill partial';
+        badge.style.background = '#fff5df';
+        badge.style.color = '#a66a00';
+      }
+    }
+  }
+
+  function openGdriveModal() {
+    const m = $('tankModal') || $('modal');
+    if (m) m.classList.remove('hidden');
+  }
+
+  function closeGdriveModal() {
+    const m = $('tankModal') || $('modal');
+    if (m) m.classList.add('hidden');
+  }
+
   async function chooseFolder() {
     if (!window.showDirectoryPicker) {
-      alert('Folder access is not supported in this browser context. Use Upload Excel files, or open this page in current Chrome/Edge over localhost or HTTPS.');
-      $('tankStockFileInput')?.click();
+      const fetched = await fetchFromAppsScriptDrive();
+      if (!fetched) {
+        alert('Browser directory picker is not supported in this browser. Please use "Upload Excel files" or run in Chrome/Edge.');
+        $('tankStockFileInput')?.click();
+      }
       return;
     }
     try {
-      folderHandle = await window.showDirectoryPicker({ mode: 'read' });
-      await readFolder();
+      let picked = await window.showDirectoryPicker({
+        mode: 'read',
+        id: 'bpcl_gdrive_tank_stock',
+        startIn: 'documents'
+      });
+      const target = await resolveTargetFolder(picked) || picked;
+      folderHandle = target;
+      await setStoredFolderHandle(folderHandle);
+      updateDriveStatusUI(true, folderHandle.name || GDRIVE_CONFIG.folderName);
+      await readFolder(false, false);
+
       if (refreshTimer) clearInterval(refreshTimer);
       refreshTimer = setInterval(() => readFolder(true), 30000); // 30s auto-refresh
+      closeGdriveModal();
     } catch (e) {
-      if (e.name !== 'AbortError') alert('Could not access folder: ' + e.message);
+      if (e.name !== 'AbortError') {
+        alert('Could not access folder: ' + e.message);
+      }
     }
   }
 
@@ -138,15 +291,43 @@
         await loadFiles(map, forceMapping);
       }
     } catch (e) {
-      if (!silent) alert('Could not read the selected folder. Confirm that the required Excel files are present. ' + e.message);
-      else console.warn(e);
+      if (!silent) alert('Could not read the Google Drive folder. Confirm that Stock hourly.xlsx, Last updated stock.xlsx, and Onboarded tanks.xlsx are present in the folder. ' + e.message);
+      else console.warn('Drive folder read check:', e);
     }
+  }
+
+  // Cloud sync fallback via Google Apps Script web app
+  async function fetchFromAppsScriptDrive() {
+    const config = window.DAY_MONITORING_CONFIG;
+    if (!config || !config.apiUrl || config.apiUrl.includes('ENTER_YOUR')) return false;
+    try {
+      if ($('dataStatus')) $('dataStatus').textContent = 'Fetching latest files from Google Drive cloud...';
+      const url = `${config.apiUrl}?apiKey=${config.apiKey}&action=getTankStockFiles&folderId=${GDRIVE_CONFIG.folderId}`;
+      const resp = await fetch(url);
+      const res = await resp.json();
+      if (res && res.success && res.files) {
+        const map = {};
+        for (const [name, info] of Object.entries(res.files)) {
+          const bin = atob(info.base64);
+          const bytes = new Uint8Array(bin.length);
+          for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+          map[name] = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        }
+        if (map['Stock hourly.xlsx'] && map['Last updated stock.xlsx']) {
+          await loadFiles(map);
+          return true;
+        }
+      }
+    } catch (e) {
+      console.warn('Google Apps Script drive fetch fallback:', e);
+    }
+    return false;
   }
 
   function groupByRO() {
     const m = new Map();
     const ensure = (id, row) => {
-      if (!m.has(id)) m.set(id, { id, name: row['Retail Outlet'] || row.RO_Name || 'Unknown RO', territory: row.Territory || '', area: row['Sales Area'] || row.Salesarea || row.Salesarea || '', vendor: row['RA Vendor'] || row.RA_Vendor || '', state: row.State || '', ebms: 0, hsd: 0, total: 0, tanks: [], latest: [], online: 0, offline: 0 });
+      if (!m.has(id)) m.set(id, { id, name: row['Retail Outlet'] || row.RO_Name || 'Unknown RO', territory: row.Territory || '', area: row['Sales Area'] || row.Salesarea || '', vendor: row['RA Vendor'] || row.RA_Vendor || '', state: row.State || '', ebms: 0, hsd: 0, total: 0, tanks: [], latest: [], online: 0, offline: 0 });
       return m.get(id);
     };
     data.onboarded.forEach(r => {
@@ -193,11 +374,11 @@
     const kpisEl = $('kpis');
     if (kpisEl) {
       kpisEl.innerHTML = [
-        ['RETAIL OUTLETS', allRO.length, ''],
-        ['ONBOARDED TANKS', totalT, ''],
-        ['ONLINE TANKS', on, totalT ? `${(on / totalT * 100).toFixed(1)}%` : ''],
-        ['OFFLINE TANKS', off, ''],
-        ['LATEST STOCK RECORDS', data.latest.length, '']
+        ['RETAIL OUTLETS', allRO.length, 'Unique RO IDs'],
+        ['ONBOARDED TANKS', totalT, 'Tank records'],
+        ['ONLINE TANKS', on, totalT ? `${(on / totalT * 100).toFixed(1)}% online` : 'Status marked Online'],
+        ['OFFLINE TANKS', off, 'Status marked Offline'],
+        ['LATEST STOCK RECORDS', data.latest.length, 'Product-level records']
       ].map(([label, val, sub]) => `
         <div class="kpi">
           <div class="klabel">${label}</div>
@@ -219,7 +400,7 @@
     if (!tbody) return;
     tbody.innerHTML = rows.map(r => {
       let st = r.offline === 0 && r.online > 0 ? 'ONLINE' : (r.online === 0 ? 'OFFLINE' : 'PARTIAL');
-      return `<tr onclick="openRO('${r.id}')"><td>${r.id}</td><td class="ro-name">${esc(r.name)}</td><td>${esc(r.area || r.territory)}</td><td>${esc(r.vendor)}</td><td class="num product-ebms">${fmt(r.ebms, 2)}</td><td class="num product-hsd">${fmt(r.hsd, 2)}</td><td class="num"><b>${fmt(r.total, 2)}</b></td><td class="num">${r.tanks.length}</td><td><span class="pill ${st === 'OFFLINE' ? 'off' : st === 'ONLINE' ? '' : 'partial'}">${st}</span></td></tr>`;
+      return `<tr onclick="openRO('${r.id}')"><td>${r.id}</td><td class="ro-name">${esc(r.name)}</td><td>${esc(r.territory)} <span class="muted">/ ${esc(r.area)}</span></td><td>${esc(r.vendor)}</td><td class="num product-ebms">${fmt(r.ebms, 2)}</td><td class="num product-hsd">${fmt(r.hsd, 2)}</td><td class="num"><b>${fmt(r.total, 2)}</b></td><td class="num">${r.tanks.length}</td><td><span class="pill ${st === 'OFFLINE' ? 'off' : st === 'ONLINE' ? '' : 'partial'}">${st}</span></td></tr>`;
     }).join('') || '<tr><td colspan="9" class="empty">No matching retail outlets found.</td></tr>';
   }
 
@@ -230,7 +411,7 @@
     $('dashboardView')?.classList.add('hidden');
     $('detailView')?.classList.remove('hidden');
     if ($('roTitle')) $('roTitle').textContent = `${ro.name} (${ro.id})`;
-    if ($('roSubtitle')) $('roSubtitle').textContent = `${ro.area || ro.territory} • RA Vendor: ${ro.vendor || '—'} • State: ${ro.state || '—'}`;
+    if ($('roSubtitle')) $('roSubtitle').textContent = `${ro.territory} • ${ro.area} • RA Vendor: ${ro.vendor || '—'} • State: ${ro.state || '—'}`;
     let prods = ['EBMS', 'HSD'];
     if ($('productSummaries')) {
       $('productSummaries').innerHTML = prods.map(p => {
@@ -246,7 +427,7 @@
     let tanks = ro.tanks.slice().sort((a, b) => (num(a['Local tank id']) || 0) - (num(b['Local tank id']) || 0));
     if ($('tankCards')) {
       $('tankCards').innerHTML = tanks.length ? tanks.map(t => tankCard(t, ro)).join('') : '<div class="empty">No onboarded tank records for this RO.</div>';
-      document.querySelectorAll('#tab-tank-stock .tank[data-tank]').forEach(el => el.addEventListener('click', () => showHourly(id, el.dataset.tank, el.dataset.product)));
+      document.querySelectorAll('#tab-tank-stock .tank[data-tank], .tank[data-tank]').forEach(el => el.addEventListener('click', () => showHourly(id, el.dataset.tank, el.dataset.product)));
     }
   };
 
@@ -299,6 +480,34 @@
     }
   }
 
+  async function autoConnectGoogleDrive() {
+    try {
+      const stored = await getStoredFolderHandle();
+      if (stored) {
+        const perm = await stored.queryPermission({ mode: 'read' });
+        if (perm === 'granted') {
+          folderHandle = stored;
+          updateDriveStatusUI(true, folderHandle.name || GDRIVE_CONFIG.folderName);
+          await readFolder(true);
+          if (refreshTimer) clearInterval(refreshTimer);
+          refreshTimer = setInterval(() => readFolder(true), 30000);
+          return true;
+        } else {
+          // Has stored handle but requires user click to requestPermission
+          updateDriveStatusUI(false);
+          const folderBtn = $('folderBtn');
+          if (folderBtn) {
+            folderBtn.innerHTML = `📁 Reconnect Google Drive`;
+            folderBtn.title = `Click to restore connection to Google Drive: ${GDRIVE_CONFIG.folderName}`;
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Auto-connect Google Drive error:', e);
+    }
+    return false;
+  }
+
   function initEvents() {
     const folderBtn = $('folderBtn');
     const refreshBtn = $('refreshBtn');
@@ -309,12 +518,35 @@
     const closeHourly = $('closeHourly');
     const modalClose = $('modalClose');
     const chooseFolderNow = $('chooseFolderNow');
+    const copyGdrivePathBtn = $('copyGdrivePathBtn');
 
-    if (folderBtn) folderBtn.onclick = () => chooseFolder();
-    if (refreshBtn) refreshBtn.onclick = () => folderHandle ? readFolder() : fileInput?.click();
+    if (folderBtn) {
+      folderBtn.onclick = async () => {
+        // If we have a stored handle that just needs permission granted:
+        const stored = await getStoredFolderHandle();
+        if (stored && !folderHandle) {
+          const granted = await verifyPermission(stored);
+          if (granted) {
+            folderHandle = stored;
+            updateDriveStatusUI(true, folderHandle.name || GDRIVE_CONFIG.folderName);
+            await readFolder();
+            if (refreshTimer) clearInterval(refreshTimer);
+            refreshTimer = setInterval(() => readFolder(true), 30000);
+            if (window.showToast) window.showToast('Reconnected to Google Drive folder: ' + (folderHandle.name || GDRIVE_CONFIG.folderName), 'success');
+            return;
+          }
+        }
+        openGdriveModal();
+      };
+    }
+
+    if (refreshBtn) refreshBtn.onclick = () => folderHandle ? readFolder() : tryPreloadLocalFiles();
     if (mappingBtn) mappingBtn.onclick = () => {
       if (folderHandle) readFolder(false, true);
-      else alert('Please select the Excel folder first. Then use Update tank mapping to refresh the fixed onboarded tank list.');
+      else {
+        alert('Please connect the Google Drive folder first. Then use Update tank mapping to refresh the fixed onboarded tank list.');
+        openGdriveModal();
+      }
     };
     if (uploadBtn) uploadBtn.onclick = () => fileInput?.click();
     if (fileInput) fileInput.onchange = async e => {
@@ -327,26 +559,34 @@
     };
     if (backBtn) backBtn.onclick = back;
     if (closeHourly) closeHourly.onclick = () => $('hourlyPanel')?.classList.add('hidden');
-    if (modalClose) modalClose.onclick = () => $('tankModal')?.classList.add('hidden');
+    if (modalClose) modalClose.onclick = closeGdriveModal;
     if (chooseFolderNow) chooseFolderNow.onclick = () => {
-      $('tankModal')?.classList.add('hidden');
       chooseFolder();
     };
+
+    if (copyGdrivePathBtn) {
+      copyGdrivePathBtn.onclick = () => {
+        const path = GDRIVE_CONFIG.localPathWindows;
+        navigator.clipboard.writeText(path).then(() => {
+          copyGdrivePathBtn.textContent = '✓ Copied!';
+          setTimeout(() => { copyGdrivePathBtn.textContent = '📋 Copy Path'; }, 2000);
+        }).catch(() => {
+          prompt('Copy local Google Drive path:', path);
+        });
+      };
+    }
 
     ['search', 'territory', 'area', 'vendor', 'state'].forEach(id => {
       const el = $(id);
       if (el) el.addEventListener(id === 'search' ? 'input' : 'change', drawROTable);
     });
 
-    if (!window.showDirectoryPicker) {
-      if ($('dataStatus')) $('dataStatus').textContent = 'Folder auto-loading needs Chrome/Edge with local folder access. You can still use Upload Excel files.';
-    } else {
-      if (!data.latest.length && $('tankModal')) {
-        // Show modal when tab is opened
+    // Check auto connection to Google Drive
+    autoConnectGoogleDrive().then(connected => {
+      if (!connected) {
+        tryPreloadLocalFiles();
       }
-    }
-
-    tryPreloadLocalFiles();
+    });
   }
 
   window.initTankStockDashboard = function() {

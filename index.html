@@ -1199,7 +1199,7 @@
       </div>
       <div class="actions">
         <a href="tank_stock_dashboard.html" target="_blank" class="btn" style="text-decoration: none; color: #168cf0; background: #eaf4ff; border-color: #c8e0ff;" title="Open standalone dashboard in new browser window">↗ Open Standalone</a>
-        <button class="btn" id="folderBtn">📁 Select data folder</button>
+        <button class="btn" id="folderBtn" title="Target Google Drive Folder: 17C1s0lqJ0jCZqc_xmRB2H_YGOro1pUk4">📁 Google Drive: Test tanks status</button>
         <button class="btn" id="refreshBtn">↻ Refresh stock</button>
         <button class="btn" id="mappingBtn">↻ Update tank mapping</button>
         <button class="btn primary" id="uploadBtn">Upload Excel files</button>
@@ -1278,13 +1278,45 @@
       <div class="footer">BPCL Automation • Tank Stock Monitoring Dashboard • Data sourced from uploaded Excel workbooks</div>
     </div>
     <div id="tankModal" class="modalback hidden">
-      <div class="modal">
+      <div class="modal" style="max-width: 580px;">
         <button class="btn modalclose" id="modalClose">✕</button>
-        <h3>Automatic folder loading</h3>
-        <p>Choose the folder that contains these exact files: <b>Stock hourly.xlsx</b>, <b>Onboarded tanks.xlsx</b> and <b>Last updated stock.xlsx</b>.</p>
-        <p>Chrome will ask permission to read the folder. The dashboard will remember the folder where browser permissions allow and check for updated files periodically while this page remains open.</p>
-        <p class="small">Keep all three Excel files together in the same folder. For best results, run this page in Google Chrome or Microsoft Edge.</p>
-        <button class="btn primary" id="chooseFolderNow">Choose folder</button>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+          <div style="width:36px; height:36px; border-radius:10px; background:#eaf4ff; display:grid; place-items:center;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 4h7l2 2h7a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" fill="#1a73e8" fill-opacity="0.2" stroke="#1a73e8" stroke-width="2"/><path d="M9 13l2 2 4-4" stroke="#1a73e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <h3 style="margin:0; font-size:16px; color:#17243a;">Connect Google Drive Folder</h3>
+            <span style="font-size:12px; color:#718096;">Tank Stock Live Synchronization</span>
+          </div>
+        </div>
+
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px; margin-bottom:14px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-weight:700; font-size:13px; color:#1e293b;">📁 Folder: Test tanks status</span>
+            <span class="pill" id="gdriveStatusBadge" style="background:#e8f9ee; color:#16853c;">Ready to connect</span>
+          </div>
+          <div style="font-size:12px; color:#64748b; margin-bottom:8px;">
+            Google Drive Link: <a href="https://drive.google.com/open?id=17C1s0lqJ0jCZqc_xmRB2H_YGOro1pUk4&usp=drive_fs" target="_blank" style="color:#0284c7; text-decoration:none; word-break:break-all;">https://drive.google.com/open?id=17C1s0lqJ0jCZqc_xmRB2H_YGOro1pUk4&usp=drive_fs</a>
+          </div>
+          <div style="display:flex; align-items:center; justify-content:space-between; background:#fff; border:1px solid #cbd5e1; border-radius:8px; padding:8px 10px; font-family:monospace; font-size:11px; color:#334155;">
+            <span id="gdriveLocalPathText">G:\My Drive\TL-PATIL- 2026\Technology\Test tanks status</span>
+            <button class="btn" id="copyGdrivePathBtn" style="padding:4px 8px; font-size:11px; margin-left:8px;">📋 Copy Path</button>
+          </div>
+        </div>
+
+        <p style="font-size:12.5px; color:#475569; line-height:1.5; margin:0 0 14px;">
+          Select the local Google Drive folder or your synced folder containing:
+          <br>• <b>Stock hourly.xlsx</b> • <b>Last updated stock.xlsx</b> • <b>Onboarded tanks.xlsx</b>
+        </p>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+          <a href="https://drive.google.com/open?id=17C1s0lqJ0jCZqc_xmRB2H_YGOro1pUk4&usp=drive_fs" target="_blank" class="btn" style="text-decoration:none; display:inline-flex; align-items:center; gap:5px;">
+            ↗ Open in Google Drive
+          </a>
+          <button class="btn primary" id="chooseFolderNow" style="background:#168cf0; color:white; font-weight:700;">
+            📁 Select 'Test tanks status' Folder
+          </button>
+        </div>
       </div>
     </div>
   </div>

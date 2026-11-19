@@ -21,6 +21,28 @@ function doGet(e) {
   try {
     validateKey_(e && e.parameter ? e.parameter.apiKey : '');
     const action = (e.parameter && e.parameter.action) || 'get';
+
+    // ---- Tank Stock Google Drive Sync (RO-Wise Tank Stock menu) ----
+    if (action === 'getTankStockFiles') {
+      const folderId = (e.parameter && e.parameter.folderId) || '17C1s0lqJ0jCZqc_xmRB2H_YGOro1pUk4';
+      const folder = DriveApp.getFolderById(folderId);
+      const files = folder.getFiles();
+      const result = {};
+      while (files.hasNext()) {
+        const file = files.next();
+        const name = file.getName();
+        if (name.endsWith('.xlsx')) {
+          result[name] = {
+            name: name,
+            id: file.getId(),
+            updated: file.getLastUpdated().toISOString(),
+            base64: Utilities.base64Encode(file.getBlob().getBytes())
+          };
+        }
+      }
+      return json_({success: true, folderId: folderId, files: result});
+    }
+
     if (action !== 'get') return json_({success:false, message:'Unsupported GET action'});
 
     const date = (e.parameter && e.parameter.date) || today_();
