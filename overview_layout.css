@@ -1,0 +1,183 @@
+/* ==========================================================================
+   Dashboard (Overview) — aligned card layout
+   Loads last: replaces the stacked overrides in styles.css / ui-refresh.css
+   • 2 × 2 chart grid with equal-height cards
+   • right column ends level with the chart grid
+   • Uptime Status as an aligned list with mini bars (no wrapping numbers)
+   ========================================================================== */
+#tab-overview .overview-body-container {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 272px !important;
+  gap: 16px !important;
+  align-items: stretch !important;
+  width: 100%;
+  margin-top: 16px;
+}
+#tab-overview .overview-main-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-auto-rows: auto;
+  gap: 16px !important;
+  min-width: 0;
+  align-items: stretch !important;
+}
+#tab-overview .overview-main-grid > .panel-card {
+  display: flex !important;
+  flex-direction: column;
+  min-width: 0;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 16px 18px !important;
+  border-radius: 14px !important;
+}
+#tab-overview .panel-card-header {
+  flex: 0 0 auto;
+  margin: 0 0 10px !important;
+  padding-bottom: 10px !important;
+}
+/* One chart height for every card so both rows line up exactly */
+#tab-overview .overview-main-grid .chart-canvas-container,
+#tab-overview .overview-main-grid .donut-chart-flex {
+  height: 250px !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  flex: 0 0 auto;
+  margin: 0 !important;
+  padding: 0 !important;
+  position: relative;
+}
+#tab-overview .overview-main-grid .chart-canvas-container canvas { max-width: 100%; }
+
+/* Donut card: chart and legend side by side, vertically centred */
+#tab-overview .donut-chart-flex {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center;
+  gap: 24px !important;
+}
+#tab-overview .donut-chart-wrapper {
+  flex: 0 0 auto;
+  width: 200px !important;
+  height: 200px !important;
+  max-width: 45%;
+  position: relative;
+}
+#tab-overview .donut-legend-list {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 280px;
+  display: flex !important;
+  flex-direction: column;
+  gap: 6px !important;
+}
+#tab-overview .donut-legend-row {
+  display: grid !important;
+  grid-template-columns: 12px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px !important;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+#tab-overview .donut-legend-row:hover { background: #f3f6fa !important; border-color: #e4e9f1; }
+#tab-overview .donut-name { font-size: 13px !important; font-weight: 600; color: #2c3c55; }
+#tab-overview .donut-val { font-size: 13px !important; font-weight: 800; color: #0d1b2e; white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- right column ---------- */
+#tab-overview .overview-right-col {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  min-width: 0;
+  height: 100%;
+}
+#tab-overview .overview-right-col > .filter-card {
+  margin: 0 !important;
+  padding: 14px 16px !important;
+  border-radius: 14px !important;
+  flex: 0 0 auto;
+  min-width: 0;
+}
+/* the last card grows so the column ends level with the charts */
+#tab-overview .overview-right-col > .filter-card:last-child {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+#tab-overview .filter-card-header { margin: 0 0 10px !important; padding-bottom: 8px !important; }
+#tab-overview .filter-items-container { display: flex !important; flex-wrap: wrap; gap: 6px !important; }
+
+#tab-overview .status-summary-list {
+  display: flex !important;
+  flex-direction: column;
+  justify-content: space-evenly;
+  gap: 14px !important;
+  flex: 1 1 auto;
+}
+#tab-overview .status-summary-row {
+  display: grid !important;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  grid-template-areas: "dot label val" "bar bar bar";
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 6px;
+  padding: 0 !important;
+  cursor: pointer;
+}
+#tab-overview .status-summary-row .donut-dot { grid-area: dot; }
+#tab-overview .status-summary-label { grid-area: label; font-size: 13px !important; font-weight: 600; color: #2c3c55; }
+#tab-overview .status-summary-val {
+  grid-area: val; white-space: nowrap !important; text-align: right;
+  font-size: 13px !important; font-weight: 800; color: #0d1b2e; font-variant-numeric: tabular-nums;
+}
+#tab-overview .ss-bar { grid-area: bar; display: block; height: 6px; border-radius: 6px; background: #eef2f7; overflow: hidden; }
+#tab-overview .ss-bar i { display: block; height: 100%; width: 0; border-radius: 6px; transition: width .5s ease; }
+#tab-overview .ss-online { background: #16a34a; }
+#tab-overview .ss-partial { background: #f59e0b; }
+#tab-overview .ss-offline { background: #dc2626; }
+#tab-overview .filter-reset-link { margin-top: 10px; align-self: flex-start; }
+
+/* ---------- responsive ---------- */
+/* Laptop: right column becomes a 4-across strip below the charts */
+@media (max-width: 1279px) {
+  #tab-overview .overview-body-container { grid-template-columns: minmax(0, 1fr) !important; }
+  #tab-overview .overview-right-col {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    height: auto;
+  }
+  #tab-overview .overview-right-col > .filter-card,
+  #tab-overview .overview-right-col > .filter-card:last-child { height: 100%; }
+}
+/* Tablet: charts stack, filters 2-across */
+@media (max-width: 1023px) {
+  #tab-overview .overview-main-grid { grid-template-columns: minmax(0, 1fr) !important; }
+  #tab-overview .overview-right-col { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+/* Tablet & phone: donut stacks above its legend, so its card must grow */
+@media (max-width: 899px) {
+  #tab-overview .overview-main-grid .donut-chart-flex { height: auto !important; flex-direction: column; gap: 12px !important; padding: 6px 0 !important; }
+  #tab-overview .donut-chart-wrapper { width: 190px !important; height: 190px !important; max-width: none; }
+  #tab-overview .donut-legend-list { width: 100%; max-width: 420px; }
+}
+/* Phone */
+@media (max-width: 640px) {
+  #tab-overview .overview-body-container { gap: 12px !important; margin-top: 12px; }
+  #tab-overview .overview-main-grid { gap: 12px !important; }
+  #tab-overview .overview-main-grid > .panel-card { padding: 14px !important; }
+  #tab-overview .overview-main-grid .chart-canvas-container { height: 230px !important; }
+  #tab-overview .overview-main-grid .donut-chart-flex { height: auto !important; flex-direction: column; gap: 12px !important; padding: 4px 0 !important; }
+  #tab-overview .donut-chart-wrapper { width: 180px !important; height: 180px !important; max-width: none; }
+  #tab-overview .donut-legend-list { width: 100%; max-width: none; }
+  #tab-overview .overview-right-col { grid-template-columns: minmax(0, 1fr); gap: 12px !important; }
+}
+
+[data-theme="dark"] #tab-overview .donut-name,
+[data-theme="dark"] #tab-overview .status-summary-label { color: #c9d5e6; }
+[data-theme="dark"] #tab-overview .donut-val,
+[data-theme="dark"] #tab-overview .status-summary-val { color: #e6edf7; }
+[data-theme="dark"] #tab-overview .ss-bar { background: #22385a; }

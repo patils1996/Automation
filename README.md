@@ -112,3 +112,30 @@ The interface was refreshed without changing any data logic:
 * Sidebar grouped into Overview / Monitoring / Summaries / Data; tabs are matched by `data-tab`, which also fixes Mappings Database never showing as active.
 * New split-panel sign-in screen.
 * Service worker cache bumped to `v15` so browsers pick up the new files; missing `manifest.json` / icon entries were removed from the pre-cache list (they made the whole offline cache fail).
+
+## 📑 Day End MIS Exporter (REPORTS → Day End MIS Exporter)
+
+Builds the day-end automation MIS from stored snapshots. Every upload / Sheet sync is saved in the browser database; the **last snapshot of each date is that day's Day End**.
+
+* **Pick:** report date (or live data), snapshot, comparison day (defaults to the previous Day End), status basis (equipment count or Column V) and Sales Area / TE / Vendor filters.
+* **Preview:** KPI cards with day-on-day deltas, plus Sales Area / TE / SO / Vendor tables and Offline, Partial and Changes lists. On phones the RO lists turn into cards.
+* **Export Excel MIS:** up to 9 sheets: MIS Summary, Sales Area, TE Wise, SO Wise, Vendor Wise, Offline ROs (with consecutive offline days), Partial ROs, Day-on-Day Changes and RO Wise Detail. Includes responsibility/remarks, % formats and filters.
+* **Share Excel** (phones/tablets), **WhatsApp Summary** (copy or open WhatsApp) and **Print / PDF** (A4 landscape).
+
+## 📤 Share (every page)
+
+* **Share button** (bottom-right, on every page) opens the BPCL share sheet with a preview of the page. You can:
+  * send a **WhatsApp** text summary (the text can be edited first),
+  * share the page as an **Image** or an A4 **PDF** through the phone's share menu (WhatsApp, Gmail, Teams…),
+  * or **download** the image or PDF, or copy the text.
+* Images include a BPCL-branded header and footer, and capture full tables, not just the visible part.
+* The Dashboard KPI pop-ups (Partially Online, Offline, MPD, Tank…) now have **CSV · Image · Share** buttons.
+* `html2canvas.min.js` and `jspdf.umd.min.js` are bundled locally (they load only when needed and work offline).
+
+## ☑️ Multi-select filters (all pages)
+
+Every filter dropdown that starts with "All …" now accepts several choices at once, for example Fully Online + Offline, or two sales areas:
+- RO Explorer, Day Monitoring, Monitoring, 3-Day Comparison, MIS Dashboard, Outlets Status, RO-Wise Tank Stock and Day End MIS.
+- The Dashboard filter pills (Sales Areas, TE, Vendors, Uptime Status) work the same way: tap a pill to add it, tap it again to remove it.
+
+Each dropdown has Select all, Clear and Done buttons, plus search when there are many options. On phones it opens as a bottom sheet. The logic lives in `multiselect.js` / `multiselect.css`; use `MS.vals(id)` and `MS.ok(values, v)` in filter code.

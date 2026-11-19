@@ -138,7 +138,9 @@
         if (type === 'hourly') return { ...r, _ro: key(r['RO ID']), _tank: key(r['Tank ID']), _product: key(r['Product Name']) };
         if (type === 'onboarded') return { ...r, _ro: key(r.ROID), _tank: key(r['Local tank id']), _product: key(r.Product_Name) };
         return { ...r, _ro: key(r['RO ID']), _product: key(r['Product Name']) };
-      });
+      })
+      // Drop Power BI export footer rows ("Applied filters: …") and blank lines — a real RO ID is numeric
+      .filter(r => /^\d{3,10}$/.test(String(r._ro || '').replace(/\.0+$/, '')));
     });
   }
 
@@ -172,14 +174,14 @@
 
       renderDashboard();
       if ($('dataStatus')) {
-        const driveLabel = folderHandle ? `🟢 Google Drive: <b>${esc(folderHandle.name || GDRIVE_CONFIG.folderName)}</b> • ` : '';
-        $('dataStatus').innerHTML = `${driveLabel}Loaded <b>${data.hourly.length.toLocaleString()}</b> hourly rows • <b>${data.onboarded.length.toLocaleString()}</b> fixed tank mappings • <b>${data.latest.length.toLocaleString()}</b> latest stock records`;
+        const driveLabel = folderHandle ? `<span class="ts-dot on"></span> Google Drive: <b>${esc(folderHandle.name || GDRIVE_CONFIG.folderName)}</b> · ` : '';
+        $('dataStatus').innerHTML = `${driveLabel}<b>${data.hourly.length.toLocaleString()}</b> hourly rows · <b>${data.onboarded.length.toLocaleString()}</b> tank mappings · <b>${data.latest.length.toLocaleString()}</b> latest stock records`;
       }
       if ($('updatedAt')) {
         $('updatedAt').textContent = 'Stock refreshed at ' + new Date().toLocaleTimeString() + (forceMapping ? ' • Tank mapping updated' : '');
       }
       if (window.showToast) {
-        window.showToast('Tank stock updated successfully from Google Drive!', 'success');
+        window.showToast(folderHandle ? 'Tank stock updated from Google Drive' : 'Tank stock loaded from Excel files', 'success');
       }
     } catch (e) {
       if ($('dataStatus')) $('dataStatus').innerHTML = '<span class="error">' + e.message + '</span>';
@@ -193,17 +195,13 @@
     const badge = $('gdriveStatusBadge');
     if (folderBtn) {
       if (connected) {
-        folderBtn.innerHTML = `🟢 Google Drive: <b>${esc(folderName)}</b>`;
+        folderBtn.innerHTML = `<span class="ts-dot on"></span><span>Drive: <b>${esc(folderName)}</b></span>`;
         folderBtn.title = `Connected to Google Drive: ${GDRIVE_CONFIG.folderId}\nClick to re-sync or change folder`;
-        folderBtn.style.borderColor = '#168cf0';
-        folderBtn.style.background = '#eaf4ff';
-        folderBtn.style.color = '#0284c7';
+        folderBtn.classList.add('is-connected');
       } else {
-        folderBtn.innerHTML = `📁 Connect Google Drive Folder`;
+        folderBtn.innerHTML = `<span class="ts-dot"></span><span>Connect Google Drive</span>`;
         folderBtn.title = `Click to connect Google Drive: ${GDRIVE_CONFIG.folderName} (${GDRIVE_CONFIG.folderId})`;
-        folderBtn.style.borderColor = '';
-        folderBtn.style.background = '';
-        folderBtn.style.color = '';
+        folderBtn.classList.remove('is-connected');
       }
     }
     if (badge) {
@@ -374,17 +372,19 @@
     allRO.forEach(r => { totalT += r.tanks.length; on += r.online; off += r.offline; });
     const kpisEl = $('kpis');
     if (kpisEl) {
+      const onPct = totalT ? on / totalT * 100 : 0;
       kpisEl.innerHTML = [
-        ['RETAIL OUTLETS', allRO.length, 'Unique RO IDs'],
-        ['ONBOARDED TANKS', totalT, 'Tank records'],
-        ['ONLINE TANKS', on, totalT ? `${(on / totalT * 100).toFixed(1)}% online` : 'Status marked Online'],
-        ['OFFLINE TANKS', off, 'Status marked Offline'],
-        ['LATEST STOCK RECORDS', data.latest.length, 'Product-level records']
-      ].map(([label, val, sub]) => `
-        <div class="kpi">
+        ['Retail Outlets', allRO.length, 'Unique RO IDs', 'navy', null],
+        ['Onboarded Tanks', totalT, 'Tank records', 'blue', null],
+        ['Online Tanks', on, totalT ? `${onPct.toFixed(1)}% online` : 'Status marked Online', 'green', onPct],
+        ['Offline Tanks', off, totalT ? `${(off / totalT * 100).toFixed(1)}% offline` : 'Status marked Offline', 'red', null],
+        ['Latest Stock Records', data.latest.length, 'Product-level records', 'yellow', null]
+      ].map(([label, val, sub, tone, bar]) => `
+        <div class="kpi ts-tone-${tone}">
           <div class="klabel">${label}</div>
           <div class="value">${Number(val || 0).toLocaleString('en-IN')}</div>
           ${sub ? `<div class="sub">${sub}</div>` : ''}
+          ${bar != null ? `<div class="ts-kbar"><span style="width:${Math.max(0, Math.min(100, bar)).toFixed(1)}%"></span></div>` : ''}
         </div>
       `).join('');
     }
@@ -414,15 +414,17 @@
   function drawROTable() {
     const searchEl = $('search'), terrEl = $('territory'), areaEl = $('area'), vendEl = $('vendor'), stateEl = $('state');
     if (!searchEl) return;
-    const q = key(searchEl.value), territory = terrEl ? terrEl.value : '', area = areaEl ? areaEl.value : '', vendor = vendEl ? vendEl.value : '', state = stateEl ? stateEl.value : '';
-    let rows = allRO.filter(r => (!q || r.id.includes(q) || key(r.name).includes(q)) && (!territory || r.territory === territory) && (!area || r.area === area) && (!vendor || r.vendor === vendor) && (!state || r.state === state));
+    const pick = el => !el ? [] : (window.MS ? MS.vals(el) : (el.value ? [el.value] : []));
+    const inSet = (arr, v) => !arr.length || arr.includes(String(v || ''));
+    const q = key(searchEl.value), territory = pick(terrEl), area = pick(areaEl), vendor = pick(vendEl), state = pick(stateEl);
+    let rows = allRO.filter(r => (!q || r.id.includes(q) || key(r.name).includes(q)) && inSet(territory, r.territory) && inSet(area, r.area) && inSet(vendor, r.vendor) && inSet(state, r.state));
     if ($('rowCount')) $('rowCount').textContent = `${rows.length.toLocaleString()} outlets`;
 
     const tbody = $('roTable');
     if (tbody) {
       tbody.innerHTML = rows.map(r => {
         let st = r.offline === 0 && r.online > 0 ? 'ONLINE' : (r.online === 0 ? 'OFFLINE' : 'PARTIAL');
-        return `<tr onclick="openRO('${r.id}')"><td>${r.id}</td><td class="ro-name">${esc(r.name)}</td><td>${esc(r.territory)} <span class="muted">/ ${esc(r.area)}</span></td><td>${esc(r.vendor)}</td><td class="num product-ebms">${fmt(r.ebms, 2)}</td><td class="num product-hsd">${fmt(r.hsd, 2)}</td><td class="num"><b>${fmt(r.total, 2)}</b></td><td class="num">${r.tanks.length}</td><td><span class="pill ${st === 'OFFLINE' ? 'off' : st === 'ONLINE' ? '' : 'partial'}">${st}</span></td></tr>`;
+        return `<tr onclick="openRO('${r.id}')"><td class="ts-id" title="${esc(r.id)}">${esc(r.id)}</td><td class="ro-name" title="${esc(r.name)}">${esc(r.name)}</td><td title="${esc(r.territory)} / ${esc(r.area)}">${esc(r.territory)} <span class="muted">/ ${esc(r.area)}</span></td><td title="${esc(r.vendor)}">${esc(r.vendor)}</td><td class="num product-ebms">${fmt(r.ebms, 2)}</td><td class="num product-hsd">${fmt(r.hsd, 2)}</td><td class="num"><b>${fmt(r.total, 2)}</b></td><td class="num"><span class="ts-tanks">${r.online}/${r.tanks.length}</span></td><td><span class="pill ${st === 'OFFLINE' ? 'off' : st === 'ONLINE' ? '' : 'partial'}">${st === 'ONLINE' ? 'Online' : st === 'OFFLINE' ? 'Offline' : 'Partial'}</span></td></tr>`;
       }).join('') || '<tr><td colspan="9" class="empty">No matching retail outlets found.</td></tr>';
     }
 
@@ -438,7 +440,7 @@
                 <h3 class="ro-card-name">${esc(r.name)}</h3>
                 <div class="ro-card-meta">${esc(r.area || r.territory)} • ${esc(r.vendor)}</div>
               </div>
-              <span class="pill ${st === 'OFFLINE' ? 'off' : st === 'ONLINE' ? '' : 'partial'}">${st}</span>
+              <span class="pill ${st === 'OFFLINE' ? 'off' : st === 'ONLINE' ? '' : 'partial'}">${st === 'ONLINE' ? 'Online' : st === 'OFFLINE' ? 'Offline' : 'Partial'}</span>
             </div>
             <div class="ro-card-grid">
               <div>
@@ -454,7 +456,7 @@
                 <div class="col-val"><b>${fmt(r.total, 2)}</b></div>
               </div>
               <div style="text-align:right">
-                <span style="font-size:11px; font-weight:700; color:#0284c7; background:#e0f2fe; padding:4px 8px; border-radius:12px;">${r.tanks.length} Tanks ›</span>
+                <span class="ts-tanks-chip">${r.online}/${r.tanks.length} tanks ›</span>
               </div>
             </div>
           </div>
@@ -558,7 +560,7 @@
           updateDriveStatusUI(false);
           const folderBtn = $('folderBtn');
           if (folderBtn) {
-            folderBtn.innerHTML = `📁 Reconnect Google Drive`;
+            folderBtn.innerHTML = `<span class="ts-dot warn"></span><span>Reconnect Google Drive</span>`;
             folderBtn.title = `Click to restore connection to Google Drive: ${GDRIVE_CONFIG.folderName}`;
           }
         }
@@ -569,7 +571,10 @@
     return false;
   }
 
+  let tankInitDone = false;
   function initEvents() {
+    if (tankInitDone) return;
+    tankInitDone = true;
     const folderBtn = $('folderBtn');
     const refreshBtn = $('refreshBtn');
     const mappingBtn = $('mappingBtn');
@@ -663,7 +668,10 @@
   }
 
   window.initTankStockDashboard = function() {
-    initEvents();
+    // Events and Drive auto-connect run once; re-opening the menu only refreshes the view
+    if (!tankInitDone) { initEvents(); return; }
+    if (!sessionStorage.getItem('bpcl_tank_view_manual')) setViewMode(window.innerWidth <= 768 ? 'cards' : 'table');
+    if (allRO && allRO.length) drawROTable();
   };
 
   if (document.readyState === 'loading') {

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bpcl-dashboard-v26';
+const CACHE_NAME = 'bpcl-dashboard-v38';
 const ASSETS = [
   './',
   './index.html',
@@ -6,6 +6,16 @@ const ASSETS = [
   './manifest.json',
   './pwa-install.js',
   './tank_stock.js',
+  './day_end_mis.js',
+  './day_end_mis.css',
+  './share_kit.js',
+  './share_kit.css',
+  './tank_stock_ui.css',
+  './overview_layout.css',
+  './multiselect.js',
+  './multiselect.css',
+  './html2canvas.min.js',
+  './jspdf.umd.min.js',
   './styles.css',
   './ui-refresh.css',
   './ui-refresh.js',
@@ -20,13 +30,10 @@ const ASSETS = [
   './sample_data.js',
   './xlsx.full.min.js',
   './chart.umd.min.js',
-  './bpcl_automation_logo.png',
-  './bpcl_automation_emblem.png',
   './favicon-32x32.png',
   './favicon.ico',
   './bpcl_emblem_official.png',
   './bpcl_logo_card.png',
-  './sidebar_skyline.png',
   './icon-192.png',
   './icon-512.png',
   './icon-maskable-192.png',
@@ -58,9 +65,19 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
+  const req = e.request;
+  // Only handle same-origin GET requests; let API calls (Apps Script, Google Sheets, POSTs) go straight to the network
+  if (req.method !== 'GET' || new URL(req.url).origin !== self.location.origin) return;
+  // Network-first so new deployments show immediately; cached copy keeps the app working offline
   e.respondWith(
-    caches.match(e.request).then((res) => {
-      return res || fetch(e.request);
-    })
+    fetch(req)
+      .then((res) => {
+        if (res && res.ok && res.type === 'basic') {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy)).catch(() => {});
+        }
+        return res;
+      })
+      .catch(() => caches.match(req, { ignoreSearch: true }).then((res) => res || (req.mode === 'navigate' ? caches.match('./index.html') : undefined)))
   );
 });

@@ -210,24 +210,25 @@
     const allAffected = (window.calculatedROs || []).filter(is2SlotPartialOrOffline);
 
     const searchQuery = (document.getElementById('outlets-status-search-input')?.value || '').toLowerCase().trim();
-    const filterStatus = document.getElementById('outlets-status-filter-status')?.value || '';
-    const filterArea = document.getElementById('outlets-status-filter-area')?.value || '';
-    const filterVendor = document.getElementById('outlets-status-filter-vendor')?.value || '';
-    const filterTech = document.getElementById('outlets-status-filter-tech')?.value || '';
-    const filterResp = document.getElementById('outlets-status-filter-resp')?.value || '';
+    const filterStatus = MS.vals('outlets-status-filter-status');
+    const filterArea = MS.vals('outlets-status-filter-area');
+    const filterVendor = MS.vals('outlets-status-filter-vendor');
+    const filterTech = MS.vals('outlets-status-filter-tech');
+    const filterResp = MS.vals('outlets-status-filter-resp');
 
     let filtered = allAffected.filter(ro => {
       const nlStatus = get2SlotStatus(ro);
-      if (filterStatus !== "") {
-        if (filterStatus === "Partially Online" && !nlStatus.toLowerCase().includes('part')) return false;
-        if (filterStatus === "Offline" && !nlStatus.toLowerCase().includes('off')) return false;
+      if (filterStatus.length) {
+        const nl = nlStatus.toLowerCase();
+        const hit = filterStatus.some(f => (f === 'Partially Online' && nl.includes('part')) || (f === 'Offline' && nl.includes('off')) || f === nlStatus);
+        if (!hit) return false;
       }
-      if (filterArea !== "" && ro.sales_area !== filterArea) return false;
-      if (filterVendor !== "" && ro.vendor !== filterVendor) return false;
-      if (filterTech !== "" && ro.iot_status !== filterTech) return false;
+      if (!MS.ok(filterArea, ro.sales_area)) return false;
+      if (!MS.ok(filterVendor, ro.vendor)) return false;
+      if (!MS.ok(filterTech, ro.iot_status)) return false;
 
       const stored = getStoredOutletData(ro.roid);
-      if (filterResp !== "" && stored.responsibility !== filterResp) return false;
+      if (!MS.ok(filterResp, stored.responsibility || '')) return false;
 
       if (searchQuery !== "") {
         const match = String(ro.roid).includes(searchQuery) ||

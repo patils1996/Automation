@@ -214,10 +214,10 @@
   function setupTable() {
     const sf = $('statusFilter');
     if (!sf) return;
-    const old = sf.value;
+    const old = window.MS ? MS.vals(sf) : (sf.value ? [sf.value] : []);
     const opts = [...new Set(allRows.map(statusOf))].sort();
     sf.innerHTML = '<option value="">All outlet statuses</option>' + opts.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
-    if (opts.includes(old)) sf.value = old;
+    if (window.MS) MS.set(sf, old.filter(v => opts.includes(v)));
 
     if ($('searchBox')) $('searchBox').oninput = applyFilter;
     sf.onchange = applyFilter;
@@ -229,9 +229,9 @@
     const sb = $('searchBox');
     const sf = $('statusFilter');
     const q = sb ? norm(sb.value) : '';
-    const s = sf ? sf.value : '';
+    const s = sf ? MS.vals(sf) : [];
 
-    filteredRows = allRows.filter(r => (!s || statusOf(r) === s) && (!q || headers.some(h => norm(r[h]).includes(q))));
+    filteredRows = allRows.filter(r => MS.ok(s, statusOf(r)) && (!q || headers.some(h => norm(r[h]).includes(q))));
 
     if ($('tableCount')) {
       let countTxt = `Showing ${filteredRows.length.toLocaleString('en-IN')} of ${allRows.length.toLocaleString('en-IN')} outlets`;

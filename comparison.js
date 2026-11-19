@@ -311,7 +311,7 @@
     basis: 'colv',           // colv | equipment
     category: 'ALL',
     search: '',
-    f: { area: '', eo: '', so: '', vendor: '', d1: '', d2: '', d3: '', pattern: '', trend: '' },
+    f: { area: [], eo: [], so: [], vendor: [], d1: [], d2: [], d3: [], pattern: [], trend: [] },
     sortField: 'severity',
     sortAsc: false,
     groupBy: 'area',
@@ -450,21 +450,27 @@
     RECOVERED: r => r.trend === 'Recovered' || r.trend === 'Improved'
   };
 
+  // Filter values are arrays (multi-select); empty = no filter
+  function fArr(v) { return Array.isArray(v) ? v : (v ? [v] : []); }
+  function inF(v, x) { const a = fArr(v); return !a.length || a.includes(x); }
+  function setF(k, arr) { State.f[k] = fArr(arr).slice(); const el = $(FILTER_IDS[k]); if (el && window.MS) MS.set(el, State.f[k]); else if (el) el.value = State.f[k][0] || ''; }
+  const FILTER_IDS = { area: 'comp-filter-area', eo: 'comp-filter-eo', so: 'comp-filter-so', vendor: 'comp-filter-vendor', d1: 'comp-filter-d1-status', d2: 'comp-filter-d2-status', d3: 'comp-filter-d3-status', pattern: 'comp-filter-pattern', trend: 'comp-filter-trend' };
+
   function applyFilters(list) {
     const q = State.search.toLowerCase().trim();
     const f = State.f;
     const cat = CAT_FILTERS[State.category] || CAT_FILTERS.ALL;
     return list.filter(r => {
       if (!cat(r)) return false;
-      if (f.area && r.area !== f.area) return false;
-      if (f.eo && r.eo !== f.eo) return false;
-      if (f.so && r.so !== f.so) return false;
-      if (f.vendor && r.vendor !== f.vendor) return false;
-      if (f.d1 && r.st[0] !== f.d1) return false;
-      if (f.d2 && r.st[1] !== f.d2) return false;
-      if (f.d3 && r.st[2] !== f.d3) return false;
-      if (f.pattern && r.pattern !== f.pattern) return false;
-      if (f.trend && r.trend !== f.trend) return false;
+      if (!inF(f.area, r.area)) return false;
+      if (!inF(f.eo, r.eo)) return false;
+      if (!inF(f.so, r.so)) return false;
+      if (!inF(f.vendor, r.vendor)) return false;
+      if (!inF(f.d1, r.st[0])) return false;
+      if (!inF(f.d2, r.st[1])) return false;
+      if (!inF(f.d3, r.st[2])) return false;
+      if (!inF(f.pattern, r.pattern)) return false;
+      if (!inF(f.trend, r.trend)) return false;
       if (q) {
         const hay = `${r.cc} ${r.name} ${r.area} ${r.vendor} ${r.eo} ${r.so} ${r.category} ${r.pattern}`.toLowerCase();
         if (!hay.includes(q)) return false;
@@ -754,7 +760,7 @@
       const issue = g.dealer + g.equip;
       const w = Math.round((issue / maxIssue) * 100);
       const dw = issue ? Math.round((g.dealer / issue) * w) : 0;
-      return `<tr data-group="${esc(g.name)}" class="comp-hot-row${State.f[key] === g.name ? ' is-active' : ''}" title="Click to filter the table to ${esc(g.name)}">
+      return `<tr data-group="${esc(g.name)}" class="comp-hot-row${fArr(State.f[key]).includes(g.name) ? ' is-active' : ''}" title="Click to filter the table to ${esc(g.name)}">
         <td class="hot-name">${esc(g.name)}</td>
         <td class="num">${g.total}</td>
         <td class="num t-dealer">${g.dealer}</td>
@@ -769,9 +775,8 @@
     body.querySelectorAll('tr[data-group]').forEach(tr => {
       tr.addEventListener('click', () => {
         const val = tr.dataset.group;
-        State.f[key] = State.f[key] === val ? '' : val;
-        const sel = $(`comp-filter-${key}`);
-        if (sel) sel.value = State.f[key];
+        const cur = fArr(State.f[key]);
+        setF(key, cur.includes(val) ? cur.filter(x => x !== val) : cur.concat(val));
         renderHotspots(State.list);
         refreshTable();
       });
@@ -783,9 +788,9 @@
       const sel = $(id);
       if (!sel) return;
       const vals = [...new Set(list.map(r => r[key]))].filter(Boolean).sort();
-      const cur = State.f[key];
+      const cur = fArr(State.f[key]).filter(v => vals.includes(v));
       sel.innerHTML = `<option value="">${label}</option>` + vals.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
-      if (cur && vals.includes(cur)) sel.value = cur; else State.f[key] = '';
+      setF(key, cur);
     };
     fill('comp-filter-area', 'area', 'All Sales Areas');
     fill('comp-filter-eo', 'eo', 'All EOs');
@@ -798,7 +803,7 @@
     if (!el) return;
     const chips = [];
     const names = { area: 'Area', eo: 'EO', so: 'SO', vendor: 'Vendor', d1: 'Day 1', d2: 'Day 2', d3: 'Day 3', pattern: 'Pattern', trend: 'Trend' };
-    Object.entries(State.f).forEach(([k, v]) => { if (v) chips.push(`<button type="button" class="comp-chip" data-k="${k}">${esc(names[k])}: ${esc(v)} ✕</button>`); });
+    Object.entries(State.f).forEach(([k, v]) => { const a = fArr(v); if (a.length) chips.push(`<button type="button" class="comp-chip" data-k="${k}">${esc(names[k])}: ${esc(a.join(', '))} ✕</button>`); });
     if (State.category !== 'ALL') chips.push(`<button type="button" class="comp-chip" data-k="__cat">Card: ${esc(catLabel(State.category))} ✕</button>`);
     if (State.search) chips.push(`<button type="button" class="comp-chip" data-k="__q">Search: “${esc(State.search)}” ✕</button>`);
     el.innerHTML = chips.length ? chips.join('') + `<button type="button" class="comp-chip comp-chip-clear" data-k="__all">Clear all</button>` : '';
@@ -807,7 +812,7 @@
       if (k === '__all') resetFilters();
       else if (k === '__cat') setCategory('ALL');
       else if (k === '__q') { State.search = ''; const s = $('comp-search-input'); if (s) s.value = ''; }
-      else { State.f[k] = ''; syncFilterInputs(); }
+      else { setF(k, []); }
       renderHotspots(State.list);
       refreshTable();
     }));
@@ -816,7 +821,7 @@
     return { DEALER: 'Dealer issues', EQUIPMENT: 'Equipment issues', NORMAL: 'Normal', VERIFY: 'Verify', CONT_OFF: '3-day offline', CONT_PART: '3-day partial', REPEATED: 'Repeated', WORSENED: 'Drop', RECOVERED: 'Improved' }[c] || c;
   }
   function resetFilters() {
-    Object.keys(State.f).forEach(k => State.f[k] = '');
+    Object.keys(State.f).forEach(k => State.f[k] = []);
     State.search = '';
     const s = $('comp-search-input'); if (s) s.value = '';
     setCategory('ALL', true);
@@ -824,7 +829,7 @@
   }
   function syncFilterInputs() {
     const map = { area: 'comp-filter-area', eo: 'comp-filter-eo', so: 'comp-filter-so', vendor: 'comp-filter-vendor', d1: 'comp-filter-d1-status', d2: 'comp-filter-d2-status', d3: 'comp-filter-d3-status', pattern: 'comp-filter-pattern', trend: 'comp-filter-trend' };
-    Object.entries(map).forEach(([k, id]) => { const el = $(id); if (el) el.value = State.f[k]; });
+    Object.entries(map).forEach(([k, id]) => { const el = $(id); if (!el) return; if (window.MS) MS.set(el, fArr(State.f[k])); else el.value = fArr(State.f[k])[0] || ''; });
   }
 
   function pill(st) {
@@ -1223,7 +1228,7 @@
       if (!el) return;
       el.addEventListener('click', e => e.stopPropagation()); // header selects inside sortable th
       el.addEventListener('change', e => {
-        State.f[k] = e.target.value;
+        State.f[k] = window.MS ? MS.vals(e.target) : (e.target.value ? [e.target.value] : []);
         if (['area', 'eo', 'so', 'vendor'].includes(k)) renderHotspots(State.list);
         refreshTable();
       });

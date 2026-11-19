@@ -1200,9 +1200,13 @@ function updateDashboardKPIs() {
   const sOnl = document.getElementById('status-cnt-online'); if (sOnl) sOnl.textContent = onlText;
   const sPart = document.getElementById('status-cnt-partial'); if (sPart) sPart.textContent = partText;
   const sOff = document.getElementById('status-cnt-offline'); if (sOff) sOff.textContent = offText;
+  [['online', onlPct], ['partial', partPct], ['offline', offPct]].forEach(([k, v]) => { const b = document.getElementById('status-bar-' + k); if (b) b.style.width = Math.max(0, Math.min(100, parseFloat(v) || 0)) + '%'; });
 }
 
 // Global dashboard filters
+// Dashboard pill filters hold arrays (multi-select); null / [] = no filter
+function dfArr(key) { const v = dashboardFilters[key]; return Array.isArray(v) ? v : (v ? [v] : []); }
+function dfHas(key, value) { return dfArr(key).includes(value); }
 let dashboardFilters = {
   salesArea: null,
   eoName: null,
@@ -1225,7 +1229,7 @@ function renderFilterButtons() {
     areaContainer.innerHTML = '';
     uniqueAreas.forEach(area => {
       const pill = document.createElement('button');
-      pill.className = 'filter-pill' + (dashboardFilters.salesArea === area ? ' active' : '');
+      pill.className = 'filter-pill' + (dfHas('salesArea', area) ? ' active' : '');
       pill.textContent = area.replace(' Retail', '').replace('-retail', '');
       pill.onclick = () => toggleDashboardFilter('salesArea', area);
       areaContainer.appendChild(pill);
@@ -1238,7 +1242,7 @@ function renderFilterButtons() {
     eoContainer.innerHTML = '';
     uniqueEos.forEach(eo => {
       const pill = document.createElement('button');
-      pill.className = 'filter-pill' + (dashboardFilters.eoName === eo ? ' active' : '');
+      pill.className = 'filter-pill' + (dfHas('eoName', eo) ? ' active' : '');
       pill.textContent = eo.split(' ')[0];
       pill.onclick = () => toggleDashboardFilter('eoName', eo);
       eoContainer.appendChild(pill);
@@ -1251,7 +1255,7 @@ function renderFilterButtons() {
     vendorContainer.innerHTML = '';
     uniqueVendors.forEach(vendor => {
       const pill = document.createElement('button');
-      pill.className = 'filter-pill' + (dashboardFilters.vendor === vendor ? ' active' : '');
+      pill.className = 'filter-pill' + (dfHas('vendor', vendor) ? ' active' : '');
       pill.textContent = vendor;
       pill.onclick = () => toggleDashboardFilter('vendor', vendor);
       vendorContainer.appendChild(pill);
@@ -1264,7 +1268,7 @@ function renderFilterButtons() {
     statusContainer.innerHTML = '';
     uniqueStatuses.forEach(status => {
       const pill = document.createElement('button');
-      pill.className = 'filter-pill' + (dashboardFilters.status === status ? ' active' : '');
+      pill.className = 'filter-pill' + (dfHas('status', status) ? ' active' : '');
       pill.textContent = status;
       pill.onclick = () => toggleDashboardFilter('status', status);
       statusContainer.appendChild(pill);
@@ -1278,7 +1282,7 @@ function renderFilterButtons() {
     const techs = ["IOT", "WFCC"];
     techs.forEach(tech => {
       const pill = document.createElement('button');
-      pill.className = 'filter-pill' + (dashboardFilters.technology === tech ? ' active' : '');
+      pill.className = 'filter-pill' + (dfHas('technology', tech) ? ' active' : '');
       pill.textContent = tech;
       pill.onclick = () => toggleDashboardFilter('technology', tech);
       techContainer.appendChild(pill);
@@ -1288,17 +1292,17 @@ function renderFilterButtons() {
   // Show/hide reset button
   const resetBtn = document.getElementById('filter-reset-global-btn');
   if (resetBtn) {
-    const hasActiveFilter = dashboardFilters.salesArea || dashboardFilters.eoName || dashboardFilters.vendor || dashboardFilters.status || dashboardFilters.technology;
+    const hasActiveFilter = ['salesArea', 'eoName', 'vendor', 'status', 'technology'].some(k => dfArr(k).length);
     resetBtn.style.display = hasActiveFilter ? 'block' : 'none';
   }
 }
 
 function toggleDashboardFilter(filterKey, value) {
-  if (dashboardFilters[filterKey] === value) {
-    dashboardFilters[filterKey] = null;
-  } else {
-    dashboardFilters[filterKey] = value;
-  }
+  // Multi-select: tap a pill to add it, tap again to remove it
+  const cur = dfArr(filterKey);
+  const next = cur.includes(value) ? cur.filter(v => v !== value) : cur.concat(value);
+  dashboardFilters[filterKey] = next.length ? next : null;
+
   applyDashboardFilters();
 }
 
@@ -1315,20 +1319,20 @@ function resetGlobalDashboardFilters() {
 
 function applyDashboardFilters() {
   let filtered = calculatedROs;
-  if (dashboardFilters.salesArea) {
-    filtered = filtered.filter(ro => ro.sales_area === dashboardFilters.salesArea);
+  if (dfArr('salesArea').length) {
+    filtered = filtered.filter(ro => dfArr('salesArea').includes(ro.sales_area));
   }
-  if (dashboardFilters.eoName) {
-    filtered = filtered.filter(ro => ro.eo_name === dashboardFilters.eoName);
+  if (dfArr('eoName').length) {
+    filtered = filtered.filter(ro => dfArr('eoName').includes(ro.eo_name));
   }
-  if (dashboardFilters.vendor) {
-    filtered = filtered.filter(ro => ro.vendor === dashboardFilters.vendor);
+  if (dfArr('vendor').length) {
+    filtered = filtered.filter(ro => dfArr('vendor').includes(ro.vendor));
   }
-  if (dashboardFilters.status) {
-    filtered = filtered.filter(ro => ro.status === dashboardFilters.status);
+  if (dfArr('status').length) {
+    filtered = filtered.filter(ro => dfArr('status').includes(ro.status));
   }
-  if (dashboardFilters.technology) {
-    filtered = filtered.filter(ro => ro.iot_status === dashboardFilters.technology);
+  if (dfArr('technology').length) {
+    filtered = filtered.filter(ro => dfArr('technology').includes(ro.iot_status));
   }
 
   // Update summaries with filtered list
@@ -1353,10 +1357,17 @@ function updateOverviewCharts() {
   const gridColor = '#eef1f6';
 
   // Custom inline plugin: draws % labels on bar charts
+  // % labels in the style of the reference photos:
+  //  • upright bars  → white value written vertically inside the top of the bar
+  //  • sideways bars → white value inside the right end of the bar
+  // (falls back to a dark label outside only when a bar is too short to hold the text)
   const barDataLabels = {
     id: 'barDataLabels',
     afterDatasetsDraw(chart) {
       const ctx = chart.ctx;
+      const horizontal = chart.options.indexAxis === 'y';
+      const fmt = v => { const n = parseFloat(v); return (n >= 99.95 ? '100' : n.toFixed(1)) + '%'; };
+
       chart.data.datasets.forEach((dataset, datasetIndex) => {
         if (dataset.type === 'line') return;
         const meta = chart.getDatasetMeta(datasetIndex);
@@ -1364,24 +1375,37 @@ function updateOverviewCharts() {
 
         meta.data.forEach((bar, index) => {
           const value = dataset.data[index];
-          if (value === null || value === undefined || value === 0) return;
-          const label = parseFloat(value).toFixed(1) + '%';
-
+          if (value === null || value === undefined || Number(value) === 0) return;
+          const label = fmt(value);
           ctx.save();
-          ctx.font = '600 10.5px Inter, system-ui, sans-serif';
+          ctx.font = '700 11px Inter, system-ui, sans-serif';
+          const textW = ctx.measureText(label).width;
+          ctx.textBaseline = 'middle';
 
-          if (chart.options.indexAxis === 'y') {
-            // Horizontal bar → draw label to the right of bar end
-            ctx.fillStyle = '#0f172a';
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(label, bar.x + 5, bar.y);
+          if (horizontal) {
+            const barLen = Math.abs(bar.x - bar.base);
+            if (barLen >= textW + 14) {
+              ctx.fillStyle = '#ffffff';
+              ctx.textAlign = 'right';
+              ctx.fillText(label, bar.x - 7, bar.y);
+            } else {
+              ctx.fillStyle = '#0f172a';
+              ctx.textAlign = 'left';
+              ctx.fillText(label, bar.x + 5, bar.y);
+            }
           } else {
-            // Vertical bar → draw label above bar
-            ctx.fillStyle = '#0f172a';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'bottom';
-            ctx.fillText(label, bar.x, bar.y - 3);
+            const barH = Math.abs(bar.base - bar.y);
+            ctx.translate(bar.x, bar.y);
+            ctx.rotate(-Math.PI / 2);
+            if (barH >= textW + 12) {
+              ctx.fillStyle = '#ffffff';
+              ctx.textAlign = 'right';
+              ctx.fillText(label, -6, 0);
+            } else {
+              ctx.fillStyle = '#0f172a';
+              ctx.textAlign = 'left';
+              ctx.fillText(label, 4, 0);
+            }
           }
           ctx.restore();
         });
@@ -1462,6 +1486,7 @@ function updateOverviewCharts() {
     const sOnl = document.getElementById('status-cnt-online'); if (sOnl) sOnl.textContent = onlText;
     const sPart = document.getElementById('status-cnt-partial'); if (sPart) sPart.textContent = partText;
     const sOff = document.getElementById('status-cnt-offline'); if (sOff) sOff.textContent = offText;
+    [['online', onlPct], ['partial', partPct], ['offline', offPct]].forEach(([k, v]) => { const b = document.getElementById('status-bar-' + k); if (b) b.style.width = Math.max(0, Math.min(100, parseFloat(v) || 0)) + '%'; });
   }
   
   // 2. Horizontal Bar Chart: Sales Area Performance
@@ -1500,7 +1525,7 @@ function updateOverviewCharts() {
         scales: {
           x: {
             min: 0,
-            max: 110,
+            max: 100,
             grid: { color: gridColor },
             ticks: {
               color: textColor,
@@ -1540,20 +1565,25 @@ function updateOverviewCharts() {
             data: mpdUptimeVals,
             backgroundColor: '#003f87',
             borderRadius: 3,
-            maxBarThickness: 14
+            maxBarThickness: 14,
+            categoryPercentage: 0.92,
+            barPercentage: 0.62
           },
           {
             label: 'Tank Uptime',
             data: tankUptimeVals,
             backgroundColor: '#0f8b82',
             borderRadius: 3,
-            maxBarThickness: 14
+            maxBarThickness: 14,
+            categoryPercentage: 0.92,
+            barPercentage: 0.62
           }
         ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: { padding: { top: 6 } },
         plugins: {
           legend: {
             display: true,
@@ -1613,7 +1643,7 @@ function updateOverviewCharts() {
         scales: {
           x: {
             min: 0,
-            max: 110,
+            max: 100,
             grid: { color: gridColor },
             ticks: {
               color: textColor,
@@ -1663,7 +1693,7 @@ function updateOverviewCharts() {
         scales: {
           x: {
             min: 0,
-            max: 110,
+            max: 100,
             grid: { color: gridColor },
             ticks: {
               color: textColor,
@@ -1805,19 +1835,19 @@ function filterROExplorer() {
   const searchQuery = searchEl ? searchEl.value.toLowerCase().trim() : '';
 
   const statusEl = document.getElementById('ro-filter-status');
-  const statusFilter = statusEl ? statusEl.value : '';
+  const statusFilter = MS.vals(statusEl);
 
   const areaEl = document.getElementById('ro-filter-area');
-  const areaFilter = areaEl ? areaEl.value : '';
+  const areaFilter = MS.vals(areaEl);
 
   const nanoEl = document.getElementById('ro-filter-nano');
-  const nanoFilter = nanoEl ? nanoEl.value : '';
+  const nanoFilter = MS.vals(nanoEl);
 
   const techEl = document.getElementById('ro-filter-technology');
-  const techFilter = techEl ? techEl.value : '';
+  const techFilter = MS.vals(techEl);
 
   const nlFilterEl = document.getElementById('ro-filter-new-logic');
-  const nlFilter = nlFilterEl ? nlFilterEl.value : '';
+  const nlFilter = MS.vals(nlFilterEl);
   
   roFilteredList = calculatedROs.filter(ro => {
     // Search match
@@ -1829,11 +1859,11 @@ function filterROExplorer() {
       (ro.vendor && ro.vendor.toLowerCase().includes(searchQuery)) ||
       (ro.mst_name && ro.mst_name.toLowerCase().includes(searchQuery));
       
-    const statusMatch = statusFilter === "" || ro.status === statusFilter;
-    const nlMatch = nlFilter === "" || (ro.new_logic_status || ro.ro_online_status || ro.status) === nlFilter;
-    const nanoMatch = nanoFilter === "" || ro.nano_status === nanoFilter;
-    const areaMatch = areaFilter === "" || ro.sales_area === areaFilter;
-    const techMatch = techFilter === "" || ro.iot_status === techFilter;
+    const statusMatch = MS.ok(statusFilter, ro.status);
+    const nlMatch = MS.ok(nlFilter, ro.new_logic_status || ro.ro_online_status || ro.status);
+    const nanoMatch = MS.ok(nanoFilter, ro.nano_status);
+    const areaMatch = MS.ok(areaFilter, ro.sales_area);
+    const techMatch = MS.ok(techFilter, ro.iot_status);
     
     return searchMatch && statusMatch && nlMatch && nanoMatch && areaMatch && techMatch;
   });
@@ -2303,7 +2333,7 @@ window.openKpiDetailsModal = function(type) {
   } else if (type === 'territory') {
     title = 'Territory Uptime Details';
     headers = ["ROID", "Retail Outlet", "Sales Area", "Total Onbd", "Total Online", "Uptime", "Status"];
-    list = dashboardFilteredROs.sort((a, b) => a.uptime - b.uptime);
+    list = dashboardFilteredROs.slice().sort((a, b) => a.uptime - b.uptime); // copy: don't reorder the dashboard's own list
   } else if (type === 'autorsp') {
     title = 'Auto RSP Outlets';
     headers = ["ROID", "Retail Outlet", "Sales Area", "TE Name", "SO Name", "Auto RSP", "Uptime", "Status"];
@@ -2810,11 +2840,11 @@ window.renderDayMonitoringTable = function() {
   const searchQuery = (document.getElementById('day-search-input').value || '').toLowerCase().trim();
   
   // Header filter values
-  const filterArea = document.getElementById('day-filter-area') ? document.getElementById('day-filter-area').value : '';
-  const filterVendor = document.getElementById('day-filter-vendor') ? document.getElementById('day-filter-vendor').value : '';
-  const filterStatus = document.getElementById('day-filter-status') ? document.getElementById('day-filter-status').value : '';
-  const filterTech = document.getElementById('day-filter-tech') ? document.getElementById('day-filter-tech').value : '';
-  const filterResp = document.getElementById('day-filter-resp') ? document.getElementById('day-filter-resp').value : '';
+  const filterArea = MS.vals('day-filter-area');
+  const filterVendor = MS.vals('day-filter-vendor');
+  const filterStatus = MS.vals('day-filter-status');
+  const filterTech = MS.vals('day-filter-tech');
+  const filterResp = MS.vals('day-filter-resp');
 
   // Filter for partially online or offline sites
   const list = calculatedROs.filter(ro => {
@@ -2823,15 +2853,15 @@ window.renderDayMonitoringTable = function() {
     }
     
     // Header filters
-    if (filterArea !== "" && ro.sales_area !== filterArea) return false;
-    if (filterVendor !== "" && ro.vendor !== filterVendor) return false;
-    if (filterStatus !== "" && ro.status !== filterStatus) return false;
-    if (filterTech !== "" && ro.iot_status !== filterTech) return false;
-    if (filterResp !== "") {
+    if (!MS.ok(filterArea, ro.sales_area)) return false;
+    if (!MS.ok(filterVendor, ro.vendor)) return false;
+    if (!MS.ok(filterStatus, ro.status)) return false;
+    if (!MS.ok(filterTech, ro.iot_status)) return false;
+    if (filterResp.length) {
       const sharedData = getSharedDayData(ro.roid);
       const localData = JSON.parse(localStorage.getItem('day_remarks_' + ro.roid) || '{}');
       const resp = sharedData.responsibility ?? localData.responsibility ?? '';
-      if (resp !== filterResp) return false;
+      if (!MS.ok(filterResp, resp)) return false;
     }
     
     // Search match
@@ -3844,12 +3874,14 @@ window.renderMonitoringComparison = async function() {
   const searchVal = (document.getElementById('mon-search-input').value || '').toLowerCase().trim();
   
   // Header filter values
-  const filterMonArea = document.getElementById('mon-filter-area-select') ? document.getElementById('mon-filter-area-select').value : '';
-  const filterMonVendor = document.getElementById('mon-filter-vendor-select') ? document.getElementById('mon-filter-vendor-select').value : '';
-  const filterMonMst = document.getElementById('mon-filter-mst-select') ? document.getElementById('mon-filter-mst-select').value : '';
-  const filterMonBaseStatus = document.getElementById('mon-filter-base-status') ? document.getElementById('mon-filter-base-status').value : '';
-  const filterMonCurrStatus = document.getElementById('mon-filter-curr-status') ? document.getElementById('mon-filter-curr-status').value : '';
-  const filterMonChangeStatus = document.getElementById('mon-filter-change-status') ? document.getElementById('mon-filter-change-status').value : '';
+  const filterMonArea = MS.vals('mon-filter-area-select');
+  const filterMonVendor = MS.vals('mon-filter-vendor-select');
+  const filterMonMst = MS.vals('mon-filter-mst-select');
+  const filterMonBaseStatus = MS.vals('mon-filter-base-status');
+  const filterMonCurrStatus = MS.vals('mon-filter-curr-status');
+  const filterMonChangeStatus = MS.vals('mon-filter-change-status');
+  // "Partially Online" also covers the partial NANO variants (Partially Communicated MPD etc.)
+  const monStatusIn = (wanted, st) => !wanted.length || wanted.some(w => st === w || (w === 'Partially Online' && st !== 'Fully Online' && st !== 'Offline'));
 
   const compareList = calculatedROs.filter(ro => {
     const baseStatus = baselineStatusMap[ro.roid] || 'Offline';
@@ -3864,26 +3896,17 @@ window.renderMonitoringComparison = async function() {
     const currRank = getRank(currStatus);
     
     // 1. Column header filters
-    if (filterMonArea !== "" && ro.sales_area !== filterMonArea) return false;
-    if (filterMonVendor !== "" && ro.vendor !== filterMonVendor) return false;
-    if (filterMonMst !== "" && ro.mst_name !== filterMonMst) return false;
+    if (!MS.ok(filterMonArea, ro.sales_area)) return false;
+    if (!MS.ok(filterMonVendor, ro.vendor)) return false;
+    if (!MS.ok(filterMonMst, ro.mst_name)) return false;
+    if (!monStatusIn(filterMonBaseStatus, baseStatus)) return false;
+    if (!monStatusIn(filterMonCurrStatus, currStatus)) return false;
     
-    if (filterMonBaseStatus !== "") {
-      const isBaseMatch = (filterMonBaseStatus === "Partially Online" && baseStatus !== "Fully Online" && baseStatus !== "Offline") || (baseStatus === filterMonBaseStatus);
-      if (!isBaseMatch) return false;
-    }
-    
-    if (filterMonCurrStatus !== "") {
-      const isCurrMatch = (filterMonCurrStatus === "Partially Online" && currStatus !== "Fully Online" && currStatus !== "Offline") || (currStatus === filterMonCurrStatus);
-      if (!isCurrMatch) return false;
-    }
-    
-    if (filterMonChangeStatus !== "") {
+    if (filterMonChangeStatus.length) {
       let changeType = "Unchanged";
       if (currRank < baseRank) changeType = "Drop";
       else if (currRank > baseRank) changeType = "Improvement";
-      
-      if (changeType !== filterMonChangeStatus) return false;
+      if (!MS.ok(filterMonChangeStatus, changeType)) return false;
     }
     
     // 2. Global pill filters

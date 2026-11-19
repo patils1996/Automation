@@ -335,27 +335,29 @@ function parseDateFromFilename(filename) {
 }
 
 function detectTime(cleaned) {
-  let hour = 18; // default 6PM
-  let min = 0;
-  
-  if (cleaned.includes('6pm') || cleaned.includes('18_00') || cleaned.includes('18-00') || cleaned.includes('1800')) {
-    hour = 18;
-  } else if (cleaned.includes('8pm') || cleaned.includes('20_00') || cleaned.includes('20-00') || cleaned.includes('2000')) {
-    hour = 20;
-  } else {
-    // Check HH:MM
-    const timeMatch = cleaned.match(/(\d{1,2})[-_.:](\d{2})/);
-    if (timeMatch) {
-      const h = parseInt(timeMatch[1]);
-      const m = parseInt(timeMatch[2]);
-      if (h < 24 && m < 60) {
-        hour = h;
-        min = m;
-      }
-    }
+  const fmt = (h, m) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  // Remove the date part first so "2026-08-19" is never mistaken for a time
+  const noDate = String(cleaned)
+    .replace(/\d{4}[-_.]\d{2}[-_.]\d{2}/g, ' ')
+    .replace(/\d{2}[-_.]\d{2}[-_.]\d{2,4}/g, ' ')
+    .replace(/\.(xlsx|xls|csv)$/, '');
+
+  // 6pm, 10 am, 8.30pm
+  let m = noDate.match(/(?:^|[^\d])(\d{1,2})(?:[.:](\d{2}))?\s*(am|pm)/);
+  if (m && +m[1] >= 1 && +m[1] <= 12) {
+    const h = (+m[1] % 12) + (m[3] === 'pm' ? 12 : 0);
+    return fmt(h, m[2] ? +m[2] : 0);
   }
-  
-  return `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+
+  // HH-MM / HH_MM / HH:MM / HH.MM / HHhMM
+  m = noDate.match(/(?:^|[^\d])(\d{1,2})[-_.:h](\d{2})(?!\d)/);
+  if (m && +m[1] < 24 && +m[2] < 60) return fmt(+m[1], +m[2]);
+
+  // HHMM (e.g. 2200)
+  m = noDate.match(/(?:^|[^\d])([01]\d|2[0-3])([0-5]\d)(?!\d)/);
+  if (m) return fmt(+m[1], +m[2]);
+
+  return fmt(18, 0); // default 6 PM
 }
 
 // Yesterday vs Today Comparison logic
