@@ -33,7 +33,7 @@ let salesAreaBarChartInstance = null;
 // Pagination and Sorting states
 const RO_PAGE_SIZE = 15;
 let roCurrentPage = 1;
-let roSortField = 'roid';
+let roSortField = 'sales_area';
 let roSortAsc = true;
 let roFilteredList = [];
 
@@ -435,6 +435,9 @@ function setupTableSort() {
   // RO Table headers
   const roHeaders = document.querySelectorAll('#ro-explorer-table th[data-sort]');
   roHeaders.forEach(th => {
+    if (th.getAttribute('data-sort') === roSortField) {
+      th.classList.add(roSortAsc ? 'sort-asc' : 'sort-desc');
+    }
     th.addEventListener('click', () => {
       const field = th.getAttribute('data-sort');
       if (roSortField === field) {
@@ -1011,6 +1014,15 @@ function processCalculations(rows) {
     calculatedROs.length = 0;
     filtered.forEach(item => calculatedROs.push(item));
   }
+
+  // Sort data by Sales Area ascending in all aspects (tie-breaker: ROID)
+  calculatedROs.sort((a, b) => {
+    const areaA = String(a.sales_area || '');
+    const areaB = String(b.sales_area || '');
+    const areaCmp = areaA.localeCompare(areaB);
+    if (areaCmp !== 0) return areaCmp;
+    return String(a.roid || '').localeCompare(String(b.roid || ''));
+  });
   
   // Reset dashboard filters on new file upload
   dashboardFilters = {
@@ -1886,7 +1898,17 @@ function sortROs() {
     
     if (valA < valB) return asc ? -1 : 1;
     if (valA > valB) return asc ? 1 : -1;
-    return 0;
+
+    // Tie-breaker: sort by Sales Area if not primary, then by ROID
+    if (key !== 'sales_area') {
+      const areaA = String(a.sales_area || '');
+      const areaB = String(b.sales_area || '');
+      const areaCmp = areaA.localeCompare(areaB);
+      if (areaCmp !== 0) return areaCmp;
+    }
+    const roidA = String(a.roid || '');
+    const roidB = String(b.roid || '');
+    return roidA.localeCompare(roidB);
   });
 }
 
@@ -2318,6 +2340,8 @@ window.openKpiDetailsModal = function(type) {
     title = 'MPD Uptime Details (Onboarded)';
     headers = ["ROID", "Retail Outlet", "Sales Area", "Onbd MPD", "Online MPD", "Offline MPD", "MPD Uptime"];
     list = dashboardFilteredROs.filter(ro => ro.onb_mpd > 0).sort((a, b) => {
+      const areaCmp = (a.sales_area || '').localeCompare(b.sales_area || '');
+      if (areaCmp !== 0) return areaCmp;
       const uptA = a.onb_mpd > 0 ? (a.onl_mpd / a.onb_mpd) : 0;
       const uptB = b.onb_mpd > 0 ? (b.onl_mpd / b.onb_mpd) : 0;
       return uptA - uptB;
@@ -2326,6 +2350,8 @@ window.openKpiDetailsModal = function(type) {
     title = 'Tank Uptime Details (Onboarded)';
     headers = ["ROID", "Retail Outlet", "Sales Area", "Onbd Tank", "Online Tank", "Offline Tank", "Tank Uptime"];
     list = dashboardFilteredROs.filter(ro => ro.onb_tnk > 0).sort((a, b) => {
+      const areaCmp = (a.sales_area || '').localeCompare(b.sales_area || '');
+      if (areaCmp !== 0) return areaCmp;
       const uptA = a.onb_tnk > 0 ? (a.onl_tnk / a.onb_tnk) : 0;
       const uptB = b.onb_tnk > 0 ? (b.onl_tnk / b.onb_tnk) : 0;
       return uptA - uptB;
@@ -2333,7 +2359,11 @@ window.openKpiDetailsModal = function(type) {
   } else if (type === 'territory') {
     title = 'Territory Uptime Details';
     headers = ["ROID", "Retail Outlet", "Sales Area", "Total Onbd", "Total Online", "Uptime", "Status"];
-    list = dashboardFilteredROs.slice().sort((a, b) => a.uptime - b.uptime); // copy: don't reorder the dashboard's own list
+    list = dashboardFilteredROs.slice().sort((a, b) => {
+      const areaCmp = (a.sales_area || '').localeCompare(b.sales_area || '');
+      if (areaCmp !== 0) return areaCmp;
+      return a.uptime - b.uptime;
+    });
   } else if (type === 'autorsp') {
     title = 'Auto RSP Outlets';
     headers = ["ROID", "Retail Outlet", "Sales Area", "TE Name", "SO Name", "Auto RSP", "Uptime", "Status"];
@@ -2877,6 +2907,14 @@ window.renderDayMonitoringTable = function() {
     return true;
   });
 
+  // Sort by Sales Area ascending, then ROID
+  list.sort((a, b) => {
+    const areaA = String(a.sales_area || '');
+    const areaB = String(b.sales_area || '');
+    const areaCmp = areaA.localeCompare(areaB);
+    if (areaCmp !== 0) return areaCmp;
+    return String(a.roid || '').localeCompare(String(b.roid || ''));
+  });
 
   window.dayMonitoringFilteredList = list;
   if (list.length === 0) {
@@ -3932,6 +3970,15 @@ window.renderMonitoringComparison = async function() {
              ro.mst_name.toLowerCase().includes(searchVal);
     }
     return true;
+  });
+
+  // Sort by Sales Area ascending, then ROID
+  compareList.sort((a, b) => {
+    const areaA = String(a.sales_area || '');
+    const areaB = String(b.sales_area || '');
+    const areaCmp = areaA.localeCompare(areaB);
+    if (areaCmp !== 0) return areaCmp;
+    return String(a.roid || '').localeCompare(String(b.roid || ''));
   });
   
   if (compareList.length === 0) {

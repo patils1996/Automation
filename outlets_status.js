@@ -10,7 +10,7 @@
  */
 
 (function() {
-  let outletsStatusSortField = 'roid';
+  let outletsStatusSortField = 'sales_area';
   let outletsStatusSortAsc = true;
   let outletsStatusFilteredList = [];
   const debounceTimers = {};
@@ -265,7 +265,15 @@
 
       if (valA < valB) return outletsStatusSortAsc ? -1 : 1;
       if (valA > valB) return outletsStatusSortAsc ? 1 : -1;
-      return 0;
+
+      // Tie breaker: sort by sales_area if not already primary, then roid
+      if (outletsStatusSortField !== 'sales_area') {
+        const areaA = String(a.sales_area || '');
+        const areaB = String(b.sales_area || '');
+        const areaCmp = areaA.localeCompare(areaB);
+        if (areaCmp !== 0) return areaCmp;
+      }
+      return String(a.roid || '').localeCompare(String(b.roid || ''));
     });
 
     outletsStatusFilteredList = filtered;
@@ -819,6 +827,9 @@
     // Sort clicks on headers
     const headers = document.querySelectorAll('#outlets-status-table th[data-sort]');
     headers.forEach(th => {
+      if (th.getAttribute('data-sort') === outletsStatusSortField) {
+        th.classList.add(outletsStatusSortAsc ? 'sort-asc' : 'sort-desc');
+      }
       th.addEventListener('click', () => {
         const field = th.getAttribute('data-sort');
         if (outletsStatusSortField === field) {

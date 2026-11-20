@@ -350,7 +350,7 @@
       if (!r._ro) return;
       ensure(r._ro, r);
     });
-    return [...m.values()].sort((a, b) => a.name.localeCompare(b.name));
+    return [...m.values()].sort((a, b) => (a.area || '').localeCompare(b.area || '') || (a.name || '').localeCompare(b.name || '') || String(a.id || '').localeCompare(String(b.id || '')));
   }
 
   function fillFilters() {

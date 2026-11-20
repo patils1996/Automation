@@ -492,7 +492,7 @@
       const va = val(a), vb = val(b);
       if (va < vb) return -1 * dir;
       if (va > vb) return 1 * dir;
-      return a.cc < b.cc ? -1 : 1;
+      return (a.area || '').localeCompare(b.area || '') || (a.cc < b.cc ? -1 : 1);
     });
   }
 

@@ -126,6 +126,17 @@
       if ($('dashboard')) $('dashboard').style.display = 'none';
       return;
     }
+
+    allRows.sort((a, b) => {
+      const sa = String(getCol(a, 'sales_area') || '');
+      const sb = String(getCol(b, 'sales_area') || '');
+      const c = sa.localeCompare(sb);
+      if (c !== 0) return c;
+      const ida = String(getCol(a, 'id') || '');
+      const idb = String(getCol(b, 'id') || '');
+      return ida.localeCompare(idb);
+    });
+
     if ($('empty')) $('empty').style.display = 'none';
     if ($('dashboard')) $('dashboard').style.display = 'block';
 

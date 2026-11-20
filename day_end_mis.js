@@ -362,6 +362,10 @@
       ro.remark = rm.remark;
     });
 
+    list.sort(function (a, b) {
+      return (a.sales_area || '').localeCompare(b.sales_area || '') || String(a.roid || '').localeCompare(String(b.roid || ''));
+    });
+
     var sortExc = function (a, b) {
       return (a.sales_area || '').localeCompare(b.sales_area || '') || (b.off_days - a.off_days) || a.roid.localeCompare(b.roid);
     };
